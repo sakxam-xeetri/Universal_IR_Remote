@@ -1,22 +1,26 @@
 # ESP32 Universal IR Remote Controller
 
-A professional WiFi-based IR blaster that fully replaces a **24-key RGB LED strip remote**. The ESP32 creates its own WiFi access point, hosts a beautiful mobile-friendly web interface, and transmits **NEC 32-bit** IR codes through an IR LED.
+A professional WiFi-based IR blaster that fully replaces a **24-key RGB LED strip remote**. The ESP32 connects to your home WiFi network, and **any device on the same network** (phone, tablet, laptop) can control the RGB strip through a browser.
+
+**Author:** [Sakshyam Bastakoti](https://sakshyambastakoti.com.np)
 
 ---
 
 ## Features
 
-- **WiFi Access Point** — No router needed; ESP32 hosts its own network
-- **Captive Portal** — Web UI opens automatically when you connect
-- **24-Key Remote Layout** — Buttons arranged exactly like the physical remote
-- **Color-Coded Buttons** — Each button matches the real remote's color
-- **HEX Code Display** — Every button shows its NEC code
-- **Click Animation** — Visual pulse feedback on button press
-- **Quick Send** — Enter any arbitrary HEX code and transmit it
+- **WiFi Station Mode** — Connects to your existing home WiFi; no separate network needed
+- **Multi-Device Access** — Any device on the same network can control the strip
+- **mDNS Support** — Access via `http://irremote.local` (no need to remember the IP)
+- **Auto-Reconnect** — Automatically reconnects if WiFi drops
+- **Remote Page** — Button layout matches the physical 24-key remote exactly
+- **Custom Commands Page** — Separate page for Quick Send and custom buttons
+- **Color-Coded Circular Buttons** — Looks like the real remote
+- **Click Animation** — Visual pulse feedback on every tap
+- **Quick Send** — Enter any arbitrary HEX code and transmit instantly
 - **Custom Buttons** — Create, edit, delete your own buttons
-- **Persistent Storage** — Custom buttons survive reboots (saved in NVS flash)
-- **Mobile Responsive** — Designed for phones; works on any screen size
-- **Serial Monitor Logging** — Every IR transmission is logged for debugging
+- **Persistent Storage** — Custom buttons survive reboots (saved in ESP32 NVS flash)
+- **Mobile Responsive** — Designed for phones, works on any screen size
+- **Serial Logging** — Every IR transmission logged for debugging
 
 ---
 
@@ -46,24 +50,20 @@ With transistor (long range ~8m+):
     3.3V ──── 22Ω ──── IR LED Anode (+) ──── Collector (above)
 ```
 
-> **Tip**: Using an NPN transistor dramatically improves IR range. The transistor
-> switches the LED with more current than the ESP32 GPIO can provide directly.
+> **Tip**: Using an NPN transistor dramatically improves IR range. The transistor switches the LED with more current than the ESP32 GPIO can provide directly.
 
 ---
 
 ## Required Libraries
 
-Install these via **Arduino IDE → Sketch → Include Library → Manage Libraries**:
+Install via **Arduino IDE → Sketch → Include Library → Manage Libraries**:
 
 | Library | Author | Version |
 |---------|--------|---------|
 | **IRremote** | Armin Joachimsmeyer | **4.x** (v4.2.0 or later) |
 
 All other libraries are built into the ESP32 Arduino Core:
-- `WiFi.h`
-- `WebServer.h`
-- `DNSServer.h`
-- `Preferences.h`
+- `WiFi.h`, `WebServer.h`, `ESPmDNS.h`, `Preferences.h`
 
 ---
 
@@ -84,15 +84,21 @@ Download from [arduino.cc](https://www.arduino.cc/en/software) (version 2.x reco
 ### 3. Install IRremote Library
 1. Open **Sketch → Include Library → Manage Libraries**
 2. Search for **IRremote**
-3. Find **"IRremote" by Armin Joachimsmeyer**
-4. Install version **4.x**
+3. Install **"IRremote" by Armin Joachimsmeyer** version **4.x**
 
-### 4. Open the Project
+### 4. Configure Your WiFi
+Open `config.h` and change these two lines to your WiFi credentials:
+
+```cpp
+#define WIFI_SSID       "YOUR_WIFI_NAME"    // ← Your WiFi network name
+#define WIFI_PASS       "YOUR_WIFI_PASS"    // ← Your WiFi password
+```
+
+### 5. Open the Project
 1. Open **File → Open** and navigate to `Universal_IR_Remote.ino`
 2. Arduino IDE will open all project files in tabs
 
-### 5. Configure Board Settings
-Under the **Tools** menu, set:
+### 6. Configure Board Settings
 
 | Setting | Value |
 |---------|-------|
@@ -105,63 +111,69 @@ Under the **Tools** menu, set:
 | Partition Scheme | Default 4MB with spiffs |
 | Port | (your ESP32 COM port) |
 
-### 6. Upload
+### 7. Upload
 1. Connect ESP32 via USB
-2. Press and hold the **BOOT** button on the ESP32 (if needed)
+2. Hold **BOOT** button (if needed)
 3. Click **Upload** (→ arrow button)
 4. Release BOOT once upload starts
 5. Wait for "Done uploading"
 
-### 7. Connect and Use
-1. Open WiFi settings on your phone/laptop
-2. Connect to **`RGB_Controller`** (open network, no password)
-3. The captive portal should open automatically
-4. If not, open a browser and go to **`http://192.168.4.1`**
+### 8. Find the IP Address
+1. Open **Tools → Serial Monitor** (baud: 115200)
+2. Press the ESP32 **RST** button
+3. You'll see output like:
+   ```
+   [WiFi] Connected!
+           IP   : 192.168.1.42
+   [mDNS] http://irremote.local
+   ```
+4. Note the IP address
+
+### 9. Use It
+1. Make sure your phone/laptop is on the **same WiFi network**
+2. Open a browser and go to:
+   - `http://192.168.1.42` (use your actual IP from step 8)
+   - **or** `http://irremote.local` (mDNS — works on most devices)
+3. You'll see the remote control UI!
 
 ---
 
-## How to Use
+## Web Pages
 
-### Remote Buttons
-Tap any button on the web remote to send its IR code. You'll see:
-- A flash animation on the button
-- Status text confirming the code was sent
-- Serial monitor output for debugging
+### Page 1: Remote Control (`/`)
+- Looks exactly like the physical 24-key remote
+- Circular color buttons + rounded control buttons
+- Brightness ☀+/☀-, OFF/ON, R/G/B/W
+- 16 color buttons + FLASH/STROBE/FADE/SMOOTH
+- Tap any button to send its NEC IR code
 
-### Quick Send
-Enter any 8-character HEX code (e.g., `00FF20DF`) in the Quick Send box and tap SEND. Useful for testing codes from other remotes.
+### Page 2: Custom Commands (`/custom`)
+- **Quick Send** — Enter any HEX code and send it
+- **Add Custom Button** — Name + HEX code → saved to flash
+- **Saved Buttons** — View, send, edit, or delete your custom buttons
+- Buttons persist across reboots
 
-### Custom Buttons
-1. Enter a **name** and **HEX code** in the Custom Buttons section
-2. Tap **ADD** to save
-3. The button appears in your custom list
-4. Use **SEND** to transmit, **EDIT** to change, **DEL** to remove
-5. Custom buttons are saved to flash and persist across reboots
+Navigate between pages using the link in the top-right corner.
 
 ---
 
 ## How to Edit HEX Codes
 
-### Method 1: Web UI (Easiest)
-Use the **Custom Buttons** section to add new codes without touching any code.
+### Method 1: Custom Commands Page (Easiest)
+Go to `/custom` in your browser and add any new button with any HEX code.
 
-### Method 2: Edit `web_ui.h` (Remote Layout)
-To change the default 24 remote buttons:
-1. Open `web_ui.h`
-2. Find the button HTML, e.g.:
-   ```html
-   <button class="btn c-red" onclick="S(this,'00FF20DF')">
-   ```
-3. Change `00FF20DF` to your desired code
-4. Update the displayed hex: `<span class="hex">00FF20DF</span>`
-5. Re-upload to ESP32
+### Method 2: Edit Source Code
+To change the 24 default remote buttons, edit `web_ui.h`:
 
-### Method 3: Edit `config.h` (Reference)
-The `config.h` file contains a reference table of all 24 codes. Update the comments to match your remote if different.
+```html
+<button class="btn circle c-red" onclick="S(this,'00FF20DF')">R</button>
+```
+
+Change `00FF20DF` to your desired NEC code, then re-upload.
 
 ---
 
-## 24-Key RGB Remote — NEC HEX Code Reference
+## 24-Key RGB Remote — NEC HEX Codes
 
 | Button | HEX Code | Button | HEX Code |
 |--------|----------|--------|----------|
@@ -169,18 +181,14 @@ The `config.h` file contains a reference table of all 24 codes. Update the comme
 | OFF | `00FF40BF` | ON | `00FFC03F` |
 | RED | `00FF20DF` | GREEN | `00FFA05F` |
 | BLUE | `00FF609F` | WHITE | `00FFE01F` |
-| ORANGE | `00FF10EF` | LT GREEN | `00FF906F` |
-| DK BLUE | `00FF50AF` | FLASH | `00FFD02F` |
-| DK ORANGE | `00FF30CF` | CYAN | `00FFB04F` |
-| PURPLE | `00FF708F` | STROBE | `00FFF00F` |
-| YELLOW | `00FF08F7` | LT BLUE | `00FF8877` |
-| PINK | `00FF48B7` | FADE | `00FFC837` |
-| LT YELLOW | `00FF28D7` | SKY BLUE | `00FFA857` |
-| LT PINK | `00FF6897` | SMOOTH | `00FFE817` |
-
-> **Note**: These are the standard NEC codes for the most common 24-key RGB LED
-> strip remotes. If your specific remote uses different codes, use an IR receiver
-> module to capture them, then update via the web UI or source code.
+| Orange | `00FF10EF` | Lt Green | `00FF906F` |
+| Dk Blue | `00FF50AF` | FLASH | `00FFD02F` |
+| Dk Orange | `00FF30CF` | Cyan | `00FFB04F` |
+| Purple | `00FF708F` | STROBE | `00FFF00F` |
+| Yellow | `00FF08F7` | Lt Blue | `00FF8877` |
+| Pink | `00FF48B7` | FADE | `00FFC837` |
+| Lt Yellow | `00FF28D7` | Sky Blue | `00FFA857` |
+| Lt Pink | `00FF6897` | SMOOTH | `00FFE817` |
 
 ---
 
@@ -188,15 +196,12 @@ The `config.h` file contains a reference table of all 24 codes. Update the comme
 
 ```
 Universal_IR_Remote/
-├── Universal_IR_Remote.ino   ← Main sketch (setup + loop)
-├── config.h                  ← WiFi, pin, and code configuration
-├── ir_sender.h               ← IR transmitter header
-├── ir_sender.cpp             ← IR transmitter (NEC protocol)
-├── button_storage.h          ← NVS storage header
-├── button_storage.cpp        ← Custom button persistence
-├── web_ui.h                  ← Embedded HTML/CSS/JS interface
-├── web_handler.h             ← Web server header
-├── web_handler.cpp           ← Web server + captive portal + API
+├── Universal_IR_Remote.ino   ← Main sketch (WiFi STA + loop)
+├── config.h                  ← WiFi credentials, GPIO pin, settings
+├── ir_sender.h / .cpp        ← IR transmitter (NEC 32-bit)
+├── button_storage.h / .cpp   ← Custom button NVS persistence
+├── web_ui.h                  ← Both HTML pages (remote + custom)
+├── web_handler.h / .cpp      ← Web server + API routes
 └── README.md                 ← This file
 ```
 
@@ -206,32 +211,26 @@ Universal_IR_Remote/
 
 | Problem | Solution |
 |---------|----------|
-| Can't find WiFi network | Check serial monitor for AP startup errors. Try restarting ESP32. |
-| Page won't load | Make sure you're connected to `RGB_Controller`. Go to `http://192.168.4.1` |
-| IR not working | Check wiring. Verify IR LED lights up using phone camera (phones can see IR). |
+| ESP32 won't connect to WiFi | Check SSID/password in `config.h`. Open Serial Monitor for errors. |
+| Can't find the IP address | Check Serial Monitor output after reset. |
+| `irremote.local` doesn't work | mDNS may not work on all devices. Use the IP address instead. |
+| IR not working | Check wiring. Verify IR LED lights up using phone camera. |
 | Short IR range | Add an NPN transistor circuit. Use 940nm IR LED. |
-| Wrong codes sent | Use an IR receiver to capture your remote's actual codes and update them. |
+| Wrong codes sent | Capture your remote's codes with an IR receiver (see below). |
 | Upload fails | Hold BOOT button during upload. Check correct COM port. |
-| Library errors | Ensure IRremote v4.x is installed. Remove any conflicting IR libraries. |
+| Library errors | Ensure IRremote v4.x is installed. Remove conflicting IR libraries. |
 
 ---
 
 ## Capturing Codes from Your Remote
 
-If the default codes don't match your remote, capture them:
+If the default codes don't match your specific remote:
 
-1. Wire an **IR receiver module** (e.g., VS1838B) to the ESP32
+1. Wire an **IR receiver** (e.g. VS1838B) to the ESP32
 2. Open the IRremote library example: **ReceiveDemo**
-3. Point your physical remote at the receiver and press each button
-4. Note the HEX codes from the Serial Monitor
-5. Update the codes in the web UI (Custom Buttons) or in `web_ui.h`
-
----
-
-## Author
-
-**Sakshyam Bastakoti**  
-🌐 [sakshyambastakoti.com.np](https://sakshyambastakoti.com.np)
+3. Press each button on your physical remote
+4. Note the HEX codes from Serial Monitor
+5. Update via the Custom Commands page or edit `web_ui.h`
 
 ---
 
