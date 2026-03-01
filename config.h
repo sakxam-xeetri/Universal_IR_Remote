@@ -9,13 +9,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// ── WiFi Station Settings (connect to your home router) ─────
-#define WIFI_SSID       "YOUR_WIFI_NAME"    // ← Change to your WiFi name
-#define WIFI_PASS       "YOUR_WIFI_PASS"    // ← Change to your WiFi password
-
-// ── WiFi Connection Settings ────────────────────────────────
-#define WIFI_CONNECT_TIMEOUT  20    // Seconds to wait for connection
+// ── WiFi Settings ───────────────────────────────────────────
+// Credentials are configured via the WiFi Manager portal.
+// On first boot, connect to the "RGB_IR_Setup" WiFi network
+// and pick your home network from the list.
+#define WIFI_CONNECT_TIMEOUT  15    // Seconds to wait for connection
 #define WIFI_HOSTNAME   "irremote"  // mDNS hostname (http://irremote.local)
+#define WIFI_RESET_PIN  0           // Hold BOOT button at startup to reset WiFi
 
 // ── IR Transmitter Settings ─────────────────────────────────
 #define IR_SEND_PIN     4           // GPIO pin connected to IR LED
