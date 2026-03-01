@@ -1,14 +1,9 @@
 /*
  * =============================================================
- *  Web UI – Remote Page (matches physical 24-key remote)
+ *  Web UI - Liquid Glass Morphism Design
  * =============================================================
- *  Layout mirrors the actual remote control image exactly:
- *    Row 1: ☀+  ☀-  OFF  ON
- *    Row 2:  R   G    B   W
- *    Row 3: 🟠  🟢  🔵  FLASH
- *    Row 4: 🟠  🟢  🟣  STROBE
- *    Row 5: 🟡  🔵  🩷  FADE
- *    Row 6: 🟡  🔵  🩷  SMOOTH
+ *  Professional glassmorphism UI with SVG icons
+ *  Page 1: Remote Control  |  Page 2: Custom Commands
  * =============================================================
  */
 
@@ -17,9 +12,9 @@
 
 #include <Arduino.h>
 
-// ═════════════════════════════════════════════════════════════
+// =============================================================
 //  PAGE 1 — REMOTE CONTROL
-// ═════════════════════════════════════════════════════════════
+// =============================================================
 const char INDEX_HTML[] PROGMEM = R"==(
 <!DOCTYPE html>
 <html lang="en">
@@ -32,207 +27,260 @@ const char INDEX_HTML[] PROGMEM = R"==(
 html,body{height:100%}
 body{
   font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-  background:#1a1a2e;
+  background:#0a0a1a;
+  background-image:
+    radial-gradient(ellipse at 20% 20%,rgba(99,102,241,.15) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 80%,rgba(236,72,153,.12) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 50%,rgba(6,182,212,.08) 0%,transparent 60%);
   display:flex;flex-direction:column;align-items:center;
-  min-height:100vh;
-  color:#e0e0e0;
+  min-height:100vh;color:#e0e0e0;
   -webkit-tap-highlight-color:transparent;
-  user-select:none;
-  padding:0 0 20px;
+  user-select:none;overflow-x:hidden;
 }
 
-/* ── Top Bar ─────────────────────────────────── */
-.topbar{
-  width:100%;padding:12px 16px;
-  display:flex;justify-content:space-between;align-items:center;
-  background:rgba(0,0,0,.3);
-  border-bottom:1px solid rgba(255,255,255,.05);
+/* -- Animated BG Orbs -- */
+.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.3;pointer-events:none;z-index:0}
+.orb-1{width:300px;height:300px;background:#6366f1;top:-80px;left:-60px;animation:float1 8s ease-in-out infinite}
+.orb-2{width:250px;height:250px;background:#ec4899;bottom:-60px;right:-50px;animation:float2 10s ease-in-out infinite}
+.orb-3{width:200px;height:200px;background:#06b6d4;top:50%;left:60%;animation:float3 12s ease-in-out infinite}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,40px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-25px,-35px)}}
+@keyframes float3{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,25px)}}
+
+/* -- Glass Utility -- */
+.glass{
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.08);
 }
+.glass-strong{
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+/* -- Top Bar -- */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  width:100%;padding:14px 20px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(10,10,26,.6);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.topbar .brand{display:flex;align-items:center;gap:10px}
+.topbar .brand svg{width:22px;height:22px;flex-shrink:0}
 .topbar .title{
-  font-size:1.05rem;font-weight:800;letter-spacing:1.5px;
-  background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);
+  font-size:.95rem;font-weight:700;letter-spacing:1.2px;
+  background:linear-gradient(135deg,#818cf8,#c084fc,#f472b6);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
 }
-.topbar .nav-link{
-  color:#48dbfb;text-decoration:none;font-size:.82rem;font-weight:600;
-  padding:6px 14px;border-radius:8px;
-  border:1px solid rgba(72,219,251,.3);
-  transition:all .2s;
+.nav-link{
+  display:flex;align-items:center;gap:6px;
+  color:rgba(255,255,255,.7);text-decoration:none;font-size:.78rem;font-weight:600;
+  padding:7px 16px;border-radius:10px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:all .25s ease;letter-spacing:.3px;
 }
-.topbar .nav-link:hover{background:rgba(72,219,251,.12)}
+.nav-link svg{width:14px;height:14px;opacity:.7}
+.nav-link:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.15)}
 
-/* ── Remote Body ─────────────────────────────── */
+/* -- Remote Body -- */
 .remote-wrap{
   flex:1;display:flex;align-items:center;justify-content:center;
-  padding:12px 10px;width:100%;
+  padding:16px 12px;width:100%;position:relative;z-index:1;
 }
 .remote{
-  background:linear-gradient(180deg,#f5f5f5 0%,#e8e8e8 50%,#ddd 100%);
-  border-radius:30px;
-  padding:24px 18px 20px;
-  max-width:320px;width:100%;
-  box-shadow:0 25px 80px rgba(0,0,0,.6),
-             0 2px 0 #fff inset,
-             0 -2px 4px rgba(0,0,0,.15) inset;
-  border:2px solid #ccc;
-  position:relative;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:28px;
+  padding:26px 18px 22px;
+  max-width:340px;width:100%;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,.4),
+    0 0 0 1px rgba(255,255,255,.05) inset,
+    0 1px 0 rgba(255,255,255,.1) inset;
+  position:relative;overflow:hidden;
 }
 .remote::before{
-  content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);
-  width:20px;height:4px;border-radius:2px;background:rgba(0,0,0,.12);
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);
+  pointer-events:none;border-radius:28px 28px 0 0;
 }
 
-/* ── Grid ────────────────────────────────────── */
+/* -- Grid -- */
 .grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:10px;
-  padding:8px 0;
+  padding:6px 0;
+  position:relative;z-index:1;
 }
+.sep{grid-column:1/-1;height:1px;margin:4px 0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)}
 
-/* ── Separator ───────────────────────────────── */
-.sep{
-  grid-column:1/-1;height:0;margin:2px 0;
-}
-
-/* ── Base Button ─────────────────────────────── */
+/* -- Base Button -- */
 .btn{
   display:flex;align-items:center;justify-content:center;
   border:none;cursor:pointer;
   font-weight:700;color:#fff;
-  text-shadow:0 1px 2px rgba(0,0,0,.4);
-  transition:transform .12s ease,box-shadow .2s;
+  text-shadow:0 1px 3px rgba(0,0,0,.4);
+  transition:transform .15s cubic-bezier(.2,.8,.2,1),box-shadow .25s;
   position:relative;overflow:hidden;
   -webkit-tap-highlight-color:transparent;
+  letter-spacing:.4px;
 }
-.btn:active{transform:scale(.85)!important}
+.btn::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.15) 0%,transparent 50%);
+  pointer-events:none;border-radius:inherit;
+}
+.btn:active{transform:scale(.88)!important}
 
-/* ── Circle Buttons (colors) ─────────────────── */
+/* -- Ripple -- */
+.btn.ripple::before{
+  content:'';position:absolute;width:120%;padding-bottom:120%;
+  border-radius:50%;background:rgba(255,255,255,.3);
+  transform:scale(0);animation:rippleAnim .5s ease-out;
+  pointer-events:none;z-index:2;
+}
+@keyframes rippleAnim{to{transform:scale(1);opacity:0}}
+
+/* -- Circle Buttons -- */
 .btn.circle{
-  width:58px;height:58px;border-radius:50%;
+  width:60px;height:60px;border-radius:50%;
   margin:0 auto;
-  box-shadow:0 4px 10px rgba(0,0,0,.3),
-             inset 0 2px 4px rgba(255,255,255,.25),
-             inset 0 -2px 4px rgba(0,0,0,.15);
-  font-size:.75rem;letter-spacing:.5px;
+  box-shadow:
+    0 4px 15px rgba(0,0,0,.3),
+    inset 0 1px 2px rgba(255,255,255,.2),
+    inset 0 -2px 4px rgba(0,0,0,.2);
+  font-size:.7rem;
 }
 
-/* ── Rounded Rect Buttons (controls) ─────────── */
+/* -- Rect Buttons -- */
 .btn.rect{
-  border-radius:10px;
+  border-radius:12px;
   padding:10px 4px;
   min-height:44px;
-  font-size:.72rem;letter-spacing:.3px;
-  box-shadow:0 3px 8px rgba(0,0,0,.25),
-             inset 0 1px 2px rgba(255,255,255,.2);
+  font-size:.68rem;letter-spacing:.5px;
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.25),
+    inset 0 1px 2px rgba(255,255,255,.15);
 }
 
-/* ── Click Flash ─────────────────────────────── */
-.btn.flash-fx{animation:flashpulse .35s ease}
-@keyframes flashpulse{
-  0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}
-  100%{box-shadow:0 0 0 16px rgba(255,255,255,0)}
-}
-
-/* ── Brightness Buttons ──────────────────────── */
+/* -- Brightness Buttons -- */
 .btn.bright{
-  background:linear-gradient(180deg,#e0e0e0,#c4c4c4);
-  color:#333;text-shadow:none;
-  border-radius:50%;width:58px;height:58px;margin:0 auto;
-  box-shadow:0 3px 8px rgba(0,0,0,.2),inset 0 1px 3px rgba(255,255,255,.6);
-  font-size:1.3rem;
+  background:rgba(255,255,255,.1);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;text-shadow:none;
+  border-radius:50%;width:60px;height:60px;margin:0 auto;
+  box-shadow:0 4px 15px rgba(0,0,0,.2),inset 0 1px 2px rgba(255,255,255,.1);
+}
+.btn.bright svg{width:22px;height:22px;fill:currentColor;position:relative;z-index:1}
+.btn.bright:hover{background:rgba(255,255,255,.15)}
+
+/* -- OFF / ON -- */
+.c-off{
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.7);text-shadow:none;
+  box-shadow:0 4px 12px rgba(0,0,0,.2),inset 0 1px 2px rgba(255,255,255,.08);
+}
+.c-on{
+  background:linear-gradient(135deg,#ef4444,#dc2626);
+  box-shadow:0 4px 20px rgba(239,68,68,.35),inset 0 1px 2px rgba(255,255,255,.2);
 }
 
-/* ── Row 1: OFF / ON ─────────────────────────── */
-.c-off{background:linear-gradient(180deg,#e8e8e8,#c8c8c8);color:#333;text-shadow:none;
-  box-shadow:0 3px 8px rgba(0,0,0,.2),inset 0 1px 3px rgba(255,255,255,.5)}
-.c-on{background:linear-gradient(180deg,#ff4444,#cc2222);
-  box-shadow:0 4px 12px rgba(255,0,0,.3),inset 0 1px 3px rgba(255,255,255,.2)}
+/* -- Color Buttons -- */
+.c-red{background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 20px rgba(239,68,68,.35),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
+.c-green{background:linear-gradient(135deg,#22c55e,#15803d);box-shadow:0 4px 20px rgba(34,197,94,.3),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
+.c-blue{background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:0 4px 20px rgba(59,130,246,.35),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
+.c-white{background:linear-gradient(135deg,#f1f5f9,#cbd5e1);color:#1e293b;text-shadow:none;box-shadow:0 4px 20px rgba(255,255,255,.15),inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 4px rgba(0,0,0,.08)}
 
-/* ── Row 2: R G B W ──────────────────────────── */
-.c-red{background:linear-gradient(180deg,#ff2020,#cc0000);
-  box-shadow:0 4px 14px rgba(255,0,0,.4),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-.c-green{background:linear-gradient(180deg,#22cc22,#009900);
-  box-shadow:0 4px 14px rgba(0,200,0,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-.c-blue{background:linear-gradient(180deg,#2244ff,#0022cc);
-  box-shadow:0 4px 14px rgba(0,50,255,.4),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-.c-white{background:linear-gradient(180deg,#f0f0f0,#cccccc);color:#333;text-shadow:none;
-  box-shadow:0 4px 10px rgba(0,0,0,.2),inset 0 2px 4px rgba(255,255,255,.5),inset 0 -2px 4px rgba(0,0,0,.1)}
+/* Row 3 */
+.c-r3{background:linear-gradient(135deg,#f97316,#c2410c);box-shadow:0 4px 18px rgba(249,115,22,.3),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
+.c-g3{background:linear-gradient(135deg,#34d399,#059669);box-shadow:0 4px 18px rgba(52,211,153,.25),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
+.c-b3{background:linear-gradient(135deg,#6366f1,#4338ca);box-shadow:0 4px 18px rgba(99,102,241,.3),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
 
-/* ── Row 3 Colors ────────────────────────────── */
-.c-r3{background:linear-gradient(180deg,#ff8833,#dd6600);
-  box-shadow:0 4px 12px rgba(255,120,0,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-.c-g3{background:linear-gradient(180deg,#33dd66,#11aa44);
-  box-shadow:0 4px 12px rgba(50,220,100,.3),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-.c-b3{background:linear-gradient(180deg,#3355dd,#1133bb);
-  box-shadow:0 4px 12px rgba(50,80,220,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+/* Row 4 */
+.c-r4{background:linear-gradient(135deg,#ea580c,#9a3412);box-shadow:0 4px 18px rgba(234,88,12,.3),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
+.c-g4{background:linear-gradient(135deg,#06b6d4,#0e7490);box-shadow:0 4px 18px rgba(6,182,212,.3),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
+.c-b4{background:linear-gradient(135deg,#a855f7,#7e22ce);box-shadow:0 4px 18px rgba(168,85,247,.3),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
 
-/* ── Row 4 Colors ────────────────────────────── */
-.c-r4{background:linear-gradient(180deg,#ff5522,#dd3300);
-  box-shadow:0 4px 12px rgba(255,80,30,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-.c-g4{background:linear-gradient(180deg,#22cccc,#009999);
-  box-shadow:0 4px 12px rgba(30,200,200,.3),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-.c-b4{background:linear-gradient(180deg,#9944ee,#7722cc);
-  box-shadow:0 4px 12px rgba(150,60,230,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+/* Row 5 */
+.c-r5{background:linear-gradient(135deg,#eab308,#a16207);color:#1c1917;text-shadow:none;box-shadow:0 4px 18px rgba(234,179,8,.3),inset 0 1px 2px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.1)}
+.c-g5{background:linear-gradient(135deg,#38bdf8,#0284c7);box-shadow:0 4px 18px rgba(56,189,248,.3),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
+.c-b5{background:linear-gradient(135deg,#ec4899,#be185d);box-shadow:0 4px 18px rgba(236,72,153,.3),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.2)}
 
-/* ── Row 5 Colors ────────────────────────────── */
-.c-r5{background:linear-gradient(180deg,#ffcc00,#ddaa00);color:#333;text-shadow:none;
-  box-shadow:0 4px 12px rgba(255,200,0,.35),inset 0 2px 4px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.1)}
-.c-g5{background:linear-gradient(180deg,#33bbee,#1199cc);
-  box-shadow:0 4px 12px rgba(50,180,230,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-.c-b5{background:linear-gradient(180deg,#ff44aa,#dd2288);
-  box-shadow:0 4px 12px rgba(255,60,160,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+/* Row 6 */
+.c-r6{background:linear-gradient(135deg,#fde047,#ca8a04);color:#1c1917;text-shadow:none;box-shadow:0 4px 18px rgba(253,224,71,.25),inset 0 1px 2px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.08)}
+.c-g6{background:linear-gradient(135deg,#67e8f9,#22d3ee);color:#134e4a;text-shadow:none;box-shadow:0 4px 18px rgba(103,232,249,.25),inset 0 1px 2px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.08)}
+.c-b6{background:linear-gradient(135deg,#f9a8d4,#ec4899);box-shadow:0 4px 18px rgba(249,168,212,.25),inset 0 1px 2px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
 
-/* ── Row 6 Colors ────────────────────────────── */
-.c-r6{background:linear-gradient(180deg,#ffee66,#ddcc33);color:#333;text-shadow:none;
-  box-shadow:0 4px 12px rgba(255,230,80,.3),inset 0 2px 4px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.1)}
-.c-g6{background:linear-gradient(180deg,#66ddff,#44bbdd);color:#1a3a4a;text-shadow:none;
-  box-shadow:0 4px 12px rgba(100,220,255,.3),inset 0 2px 4px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.1)}
-.c-b6{background:linear-gradient(180deg,#ff88cc,#dd66aa);
-  box-shadow:0 4px 12px rgba(255,130,200,.3),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
-
-/* ── Function Buttons (FLASH/STROBE/FADE/SMOOTH) */
+/* -- Function Buttons -- */
 .c-func{
-  background:linear-gradient(180deg,#d8d8d8,#b8b8b8);
-  color:#333;text-shadow:none;
-  box-shadow:0 3px 8px rgba(0,0,0,.2),inset 0 1px 3px rgba(255,255,255,.5);
+  background:rgba(255,255,255,.07);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.85);text-shadow:none;
+  box-shadow:0 4px 12px rgba(0,0,0,.2),inset 0 1px 2px rgba(255,255,255,.08);
 }
+.c-func:hover{background:rgba(255,255,255,.12)}
 
-/* ── Status Bar ──────────────────────────────── */
+/* -- Status -- */
 .status{
-  text-align:center;padding:8px 4px 0;
-  font-size:.7rem;color:#888;min-height:22px;
+  text-align:center;padding:12px 4px 2px;
+  font-size:.72rem;min-height:28px;
   transition:color .3s;font-weight:500;
+  color:rgba(255,255,255,.4);
+  position:relative;z-index:1;
 }
 
-/* ── Footer info ─────────────────────────────── */
+/* -- Footer -- */
 .info{
-  text-align:center;padding:10px;
-  font-size:.6rem;color:#444;letter-spacing:.5px;
+  text-align:center;padding:12px;position:relative;z-index:1;
+  font-size:.6rem;color:rgba(255,255,255,.25);letter-spacing:.5px;
 }
-.info a{color:#48dbfb;text-decoration:none}
+.info a{color:#818cf8;text-decoration:none;transition:color .2s}
+.info a:hover{color:#a5b4fc}
 
-/* ── Responsive tweaks ───────────────────────── */
+/* -- Responsive -- */
 @media(max-width:340px){
-  .remote{padding:18px 12px 16px}
+  .remote{padding:18px 12px 16px;border-radius:22px}
   .grid{gap:7px}
-  .btn.circle{width:50px;height:50px;font-size:.65rem}
-  .btn.bright{width:50px;height:50px;font-size:1.1rem}
-  .btn.rect{padding:8px 3px;font-size:.65rem}
+  .btn.circle{width:50px;height:50px;font-size:.6rem}
+  .btn.bright{width:50px;height:50px}
+  .btn.bright svg{width:18px;height:18px}
+  .btn.rect{padding:8px 3px;font-size:.6rem}
 }
 @media(min-width:400px){
-  .btn.circle{width:64px;height:64px}
-  .btn.bright{width:64px;height:64px}
+  .btn.circle{width:66px;height:66px}
+  .btn.bright{width:66px;height:66px}
 }
 </style>
 </head>
 <body>
 
+<!-- BG Orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
 <!-- TOP BAR -->
 <div class="topbar">
-  <span class="title">RGB IR REMOTE</span>
-  <a href="/custom" class="nav-link">&#9881; Custom</a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
+    <span class="title">RGB IR REMOTE</span>
+  </div>
+  <a href="/custom" class="nav-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Custom
+  </a>
 </div>
 
 <!-- REMOTE -->
@@ -240,11 +288,19 @@ body{
 <div class="remote">
   <div class="grid">
 
-    <!-- Row 1: Brightness + / - / OFF / ON -->
-    <button class="btn bright" onclick="S(this,'00F700FF')" title="Brightness Up">&#9728;</button>
-    <button class="btn bright" onclick="S(this,'00F7807F')" title="Brightness Down" style="font-size:1rem">&#9788;</button>
-    <button class="btn rect c-off" onclick="S(this,'00F740BF')">OFF</button>
-    <button class="btn rect c-on"  onclick="S(this,'00F7C03F')">ON</button>
+    <!-- Row 1: Brightness / OFF / ON -->
+    <button class="btn bright" onclick="S(this,'00F700FF')" title="Brighter">
+      <svg viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+    </button>
+    <button class="btn bright" onclick="S(this,'00F7807F')" title="Darker">
+      <svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+    </button>
+    <button class="btn rect c-off" onclick="S(this,'00F740BF')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:3px"><path d="M18.36 6.64A9 9 0 115.64 18.36 9 9 0 0118.36 6.64M12 2v10"/></svg>OFF
+    </button>
+    <button class="btn rect c-on" onclick="S(this,'00F7C03F')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:3px"><path d="M18.36 6.64A9 9 0 115.64 18.36 9 9 0 0118.36 6.64M12 2v10"/></svg>ON
+    </button>
 
     <div class="sep"></div>
 
@@ -290,15 +346,16 @@ body{
 <script>
 var st=document.getElementById('st');
 function S(el,code){
-  el.classList.remove('flash-fx');void el.offsetWidth;el.classList.add('flash-fx');
-  st.style.color='#48dbfb';st.textContent='Sending 0x'+code+' \u2026';
+  el.classList.remove('ripple');void el.offsetWidth;el.classList.add('ripple');
+  setTimeout(function(){el.classList.remove('ripple')},500);
+  st.style.color='#818cf8';st.textContent='Sending 0x'+code+' ...';
   fetch('/api/send?code='+code)
     .then(function(r){return r.json()})
     .then(function(d){
-      st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Sent 0x'+code:'\u2718 Failed';
+      st.style.color=d.ok?'#34d399':'#f87171';
+      st.textContent=d.ok?'Sent 0x'+code+' successfully':'Failed to send';
     })
-    .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
+    .catch(function(){st.style.color='#f87171';st.textContent='Connection error';});
 }
 </script>
 </body>
@@ -306,9 +363,9 @@ function S(el,code){
 )==";
 
 
-// ═════════════════════════════════════════════════════════════
+// =============================================================
 //  PAGE 2 — CUSTOM COMMANDS
-// ═════════════════════════════════════════════════════════════
+// =============================================================
 const char CUSTOM_HTML[] PROGMEM = R"==(
 <!DOCTYPE html>
 <html lang="en">
@@ -320,129 +377,203 @@ const char CUSTOM_HTML[] PROGMEM = R"==(
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-  background:#1a1a2e;
-  min-height:100vh;
-  color:#e0e0e0;
+  background:#0a0a1a;
+  background-image:
+    radial-gradient(ellipse at 30% 10%,rgba(99,102,241,.12) 0%,transparent 50%),
+    radial-gradient(ellipse at 70% 90%,rgba(236,72,153,.1) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 50%,rgba(6,182,212,.06) 0%,transparent 60%);
+  min-height:100vh;color:#e0e0e0;
   -webkit-tap-highlight-color:transparent;
-  user-select:none;
+  user-select:none;overflow-x:hidden;
 }
 
-/* ── Top Bar ─────────────────────────────────── */
+/* -- Animated BG Orbs -- */
+.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.25;pointer-events:none;z-index:0}
+.orb-1{width:280px;height:280px;background:#6366f1;top:-80px;right:-60px;animation:f1 9s ease-in-out infinite}
+.orb-2{width:220px;height:220px;background:#ec4899;bottom:-50px;left:-40px;animation:f2 11s ease-in-out infinite}
+@keyframes f1{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,30px)}}
+@keyframes f2{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,-25px)}}
+
+/* -- Top Bar -- */
 .topbar{
-  width:100%;padding:12px 16px;
+  position:sticky;top:0;z-index:100;
+  width:100%;padding:14px 20px;
   display:flex;justify-content:space-between;align-items:center;
-  background:rgba(0,0,0,.3);
-  border-bottom:1px solid rgba(255,255,255,.05);
+  background:rgba(10,10,26,.6);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(255,255,255,.06);
 }
+.topbar .brand{display:flex;align-items:center;gap:10px}
+.topbar .brand svg{width:22px;height:22px;flex-shrink:0}
 .topbar .title{
-  font-size:1.05rem;font-weight:800;letter-spacing:1.5px;
-  background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);
+  font-size:.95rem;font-weight:700;letter-spacing:1.2px;
+  background:linear-gradient(135deg,#818cf8,#c084fc,#f472b6);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
 }
-.topbar .nav-link{
-  color:#48dbfb;text-decoration:none;font-size:.82rem;font-weight:600;
-  padding:6px 14px;border-radius:8px;
-  border:1px solid rgba(72,219,251,.3);
-  transition:all .2s;
+.nav-link{
+  display:flex;align-items:center;gap:6px;
+  color:rgba(255,255,255,.7);text-decoration:none;font-size:.78rem;font-weight:600;
+  padding:7px 16px;border-radius:10px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:all .25s ease;letter-spacing:.3px;
 }
-.topbar .nav-link:hover{background:rgba(72,219,251,.12)}
+.nav-link svg{width:14px;height:14px;opacity:.7}
+.nav-link:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.15)}
 
-/* ── Content ─────────────────────────────────── */
+/* -- Content -- */
 .content{
-  max-width:440px;margin:0 auto;padding:20px 14px 30px;
+  max-width:480px;margin:0 auto;padding:20px 16px 40px;
+  position:relative;z-index:1;
 }
 
-/* ── Section Card ────────────────────────────── */
+/* -- Glass Card -- */
 .card{
-  background:linear-gradient(180deg,#1e1e3a,#16162e);
-  border-radius:18px;padding:20px 16px;
-  border:1px solid rgba(255,255,255,.06);
-  box-shadow:0 12px 40px rgba(0,0,0,.4);
-  margin-bottom:18px;
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;padding:22px 18px;
+  box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);
+  margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:40%;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);
+  pointer-events:none;border-radius:20px 20px 0 0;
 }
 .card h2{
-  font-size:.95rem;margin-bottom:14px;color:#48dbfb;
-  letter-spacing:.5px;display:flex;align-items:center;gap:8px;
+  font-size:.88rem;margin-bottom:14px;
+  color:rgba(255,255,255,.85);font-weight:700;letter-spacing:.5px;
+  display:flex;align-items:center;gap:10px;
+  position:relative;z-index:1;
 }
+.card h2 svg{width:18px;height:18px;flex-shrink:0;opacity:.7}
 
-/* ── Status Bar ──────────────────────────────── */
+/* -- Status -- */
 .status{
-  text-align:center;padding:10px 4px;
-  font-size:.75rem;color:#48dbfb;min-height:28px;
+  text-align:center;padding:10px 4px 6px;
+  font-size:.75rem;min-height:32px;
   transition:color .3s;font-weight:500;
+  color:rgba(255,255,255,.35);
+  position:relative;z-index:1;
 }
 
-/* ── Quick Send Section ──────────────────────── */
-.qrow{display:flex;gap:8px}
-.qrow input{
-  flex:1;padding:12px 14px;border-radius:10px;
-  border:1px solid #2a2a48;background:#0e0e20;color:#ddd;
-  font-size:.95rem;font-family:'Courier New',monospace;
-  outline:none;transition:border-color .2s;letter-spacing:1.5px;
+/* -- Inputs -- */
+.inp{
+  flex:1;padding:11px 14px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(0,0,0,.3);color:#e0e0e0;
+  font-size:.88rem;outline:none;
+  transition:border-color .25s,box-shadow .25s;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
-.qrow input:focus{border-color:#48dbfb}
-.qrow input::placeholder{color:#3a3a5a;letter-spacing:0}
+.inp:focus{border-color:rgba(129,140,248,.4);box-shadow:0 0 0 3px rgba(129,140,248,.1)}
+.inp::placeholder{color:rgba(255,255,255,.2)}
+.inp.mono{font-family:'SF Mono','Fira Code','Courier New',monospace;letter-spacing:1.5px}
 
-/* ── Buttons ─────────────────────────────────── */
+/* -- Buttons -- */
 .abtn{
-  padding:10px 18px;border-radius:10px;border:none;cursor:pointer;
-  font-size:.8rem;font-weight:700;color:#fff;white-space:nowrap;
-  transition:transform .1s,filter .2s;
-  box-shadow:0 3px 10px rgba(0,0,0,.3);
+  padding:10px 18px;border-radius:12px;border:none;cursor:pointer;
+  font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;
+  transition:transform .12s,box-shadow .25s,background .25s;
+  position:relative;overflow:hidden;letter-spacing:.3px;
 }
-.abtn:active{transform:scale(.93)}
-.abtn.send{background:linear-gradient(180deg,#0abde3,#0897b4)}
-.abtn.primary{background:linear-gradient(180deg,#48dbfb,#2e9ab8)}
-.abtn.edit-btn{background:linear-gradient(180deg,#feca57,#d4a520);color:#222;font-size:.7rem;padding:8px 12px}
-.abtn.del-btn{background:linear-gradient(180deg,#ff6b6b,#cc4444);font-size:.7rem;padding:8px 12px}
-
-/* ── Add Button Form ─────────────────────────── */
-.form-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.form-row input{
-  flex:1;min-width:100px;padding:11px 14px;border-radius:10px;
-  border:1px solid #2a2a48;background:#0e0e20;color:#ddd;
-  font-size:.85rem;outline:none;transition:border-color .2s;
+.abtn::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 60%);
+  pointer-events:none;border-radius:inherit;
 }
-.form-row input:focus{border-color:#48dbfb}
-.form-row input::placeholder{color:#3a3a5a}
-.form-row .hex-input{font-family:'Courier New',monospace;letter-spacing:1px}
+.abtn:active{transform:scale(.94)}
 
-/* ── Custom Button List ──────────────────────── */
-.clist{margin-top:6px}
+.abtn.send{
+  background:linear-gradient(135deg,#6366f1,#4f46e5);
+  box-shadow:0 4px 15px rgba(99,102,241,.3);
+}
+.abtn.send:hover{box-shadow:0 4px 20px rgba(99,102,241,.45)}
+
+.abtn.primary{
+  background:linear-gradient(135deg,#818cf8,#6366f1);
+  box-shadow:0 4px 15px rgba(129,140,248,.3);
+}
+.abtn.primary:hover{box-shadow:0 4px 20px rgba(129,140,248,.45)}
+
+.abtn.edit-btn{
+  background:linear-gradient(135deg,#fbbf24,#d97706);color:#1c1917;
+  font-size:.7rem;padding:8px 12px;
+  box-shadow:0 3px 10px rgba(251,191,36,.2);
+}
+.abtn.del-btn{
+  background:linear-gradient(135deg,#f87171,#dc2626);
+  font-size:.7rem;padding:8px 12px;
+  box-shadow:0 3px 10px rgba(248,113,113,.2);
+}
+.abtn.danger{
+  background:linear-gradient(135deg,#f87171,#dc2626);
+  box-shadow:0 4px 15px rgba(248,113,113,.25);
+  width:100%;padding:12px;
+}
+
+/* -- Quick Send -- */
+.qrow{display:flex;gap:10px;position:relative;z-index:1}
+
+/* -- Form -- */
+.form-row{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1}
+.form-row .inp{min-width:100px}
+
+/* -- Custom Button List -- */
+.clist{position:relative;z-index:1}
 .citem{
   display:flex;align-items:center;gap:10px;
-  padding:12px 12px;margin-bottom:8px;border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;border-radius:14px;
   background:rgba(255,255,255,.03);
   border:1px solid rgba(255,255,255,.05);
-  transition:background .2s;
+  transition:background .2s,border-color .2s;
 }
-.citem:hover{background:rgba(255,255,255,.06)}
-.citem .cname{flex:1;font-size:.85rem;font-weight:600}
+.citem:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+.citem .cname{flex:1;font-size:.84rem;font-weight:600;color:rgba(255,255,255,.85)}
 .citem .ccode{
-  font-size:.78rem;color:#666;font-family:'Courier New',monospace;
-  letter-spacing:.5px;
+  font-size:.74rem;color:rgba(255,255,255,.3);
+  font-family:'SF Mono','Fira Code','Courier New',monospace;letter-spacing:.5px;
 }
 .citem .actions{display:flex;gap:6px;flex-shrink:0}
 .empty-msg{
-  text-align:center;padding:18px 10px;
-  font-size:.8rem;color:#3a3a5a;
+  text-align:center;padding:24px 10px;
+  font-size:.8rem;color:rgba(255,255,255,.2);
 }
 
-/* ── Info Footer ─────────────────────────────── */
+/* -- WiFi Card Accent -- */
+.card.wifi-card{border-color:rgba(248,113,113,.15)}
+.card.wifi-card h2{color:#f87171}
+.card.wifi-card p{font-size:.75rem;color:rgba(255,255,255,.35);margin-bottom:14px;position:relative;z-index:1;line-height:1.5}
+
+/* -- Footer -- */
 .info{
-  text-align:center;padding:10px;
-  font-size:.6rem;color:#444;letter-spacing:.5px;
+  text-align:center;padding:12px;position:relative;z-index:1;
+  font-size:.6rem;color:rgba(255,255,255,.2);letter-spacing:.5px;
 }
-.info a{color:#48dbfb;text-decoration:none}
+.info a{color:#818cf8;text-decoration:none;transition:color .2s}
+.info a:hover{color:#a5b4fc}
 </style>
 </head>
 <body>
 
+<!-- BG Orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
 <!-- TOP BAR -->
 <div class="topbar">
-  <span class="title">CUSTOM COMMANDS</span>
-  <a href="/" class="nav-link">&#9664; Remote</a>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="title">CUSTOM COMMANDS</span>
+  </div>
+  <a href="/" class="nav-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
+    Remote
+  </a>
 </div>
 
 <div class="content">
@@ -452,9 +583,12 @@ body{
 
   <!-- QUICK SEND -->
   <div class="card">
-    <h2>&#9889; Quick Send</h2>
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Quick Send
+    </h2>
     <div class="qrow">
-      <input type="text" id="qhex" placeholder="HEX  e.g. 00FF20DF" maxlength="10"
+      <input type="text" id="qhex" class="inp mono" placeholder="HEX e.g. F720DF" maxlength="10"
              oninput="this.value=this.value.replace(/[^0-9a-fA-Fx]/g,'')">
       <button class="abtn send" onclick="QS()">SEND</button>
     </div>
@@ -462,10 +596,13 @@ body{
 
   <!-- ADD CUSTOM BUTTON -->
   <div class="card">
-    <h2>&#10133; Add Custom Button</h2>
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Add Custom Button
+    </h2>
     <div class="form-row">
-      <input type="text" id="cn" placeholder="Button name" maxlength="20">
-      <input type="text" id="cc" class="hex-input" placeholder="HEX code" maxlength="10"
+      <input type="text" id="cn" class="inp" placeholder="Button name" maxlength="20">
+      <input type="text" id="cc" class="inp mono" placeholder="HEX code" maxlength="10"
              oninput="this.value=this.value.replace(/[^0-9a-fA-Fx]/g,'')">
       <button class="abtn primary" onclick="AB()">ADD</button>
     </div>
@@ -473,17 +610,23 @@ body{
 
   <!-- SAVED BUTTONS -->
   <div class="card">
-    <h2>&#128203; Saved Buttons</h2>
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Saved Buttons
+    </h2>
     <div id="cl" class="clist">
       <div class="empty-msg">Loading...</div>
     </div>
   </div>
 
   <!-- WIFI SETTINGS -->
-  <div class="card" style="border-color:rgba(255,100,100,.15)">
-    <h2 style="color:#ff6b6b">&#128274; WiFi Settings</h2>
-    <p style="font-size:.75rem;color:#666;margin-bottom:12px">Erase saved WiFi credentials and reboot into setup mode to connect to a different network.</p>
-    <button class="abtn" style="background:linear-gradient(180deg,#ff6b6b,#cc4444);width:100%;padding:12px" onclick="RW()">Reset WiFi &amp; Reboot</button>
+  <div class="card wifi-card">
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+      WiFi Settings
+    </h2>
+    <p>Erase saved WiFi credentials and reboot into setup mode to connect to a different network.</p>
+    <button class="abtn danger" onclick="RW()">Reset WiFi &amp; Reboot</button>
   </div>
 
 </div>
@@ -493,22 +636,22 @@ body{
 <script>
 var st=document.getElementById('st');
 
-/* ── Quick Send ──────────────────────────────── */
+/* -- Quick Send -- */
 function QS(){
   var c=document.getElementById('qhex').value.trim().replace(/^0x/i,'').toUpperCase();
-  if(!c||!/^[0-9A-F]{1,8}$/.test(c)){st.style.color='#ff6b6b';st.textContent='Enter a valid HEX code';return;}
+  if(!c||!/^[0-9A-F]{1,8}$/.test(c)){st.style.color='#f87171';st.textContent='Enter a valid HEX code';return;}
   while(c.length<8)c='0'+c;
-  st.style.color='#48dbfb';st.textContent='Sending 0x'+c+' \u2026';
+  st.style.color='#818cf8';st.textContent='Sending 0x'+c+' ...';
   fetch('/api/send?code='+c)
     .then(function(r){return r.json()})
     .then(function(d){
-      st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Sent 0x'+c:'\u2718 Failed';
+      st.style.color=d.ok?'#34d399':'#f87171';
+      st.textContent=d.ok?'Sent 0x'+c+' successfully':'Failed to send';
     })
-    .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
+    .catch(function(){st.style.color='#f87171';st.textContent='Connection error';});
 }
 
-/* ── Load custom buttons ─────────────────────── */
+/* -- Load custom buttons -- */
 function LC(){
   fetch('/api/custom')
     .then(function(r){return r.json()})
@@ -524,86 +667,86 @@ function LC(){
         h+='<button class="abtn del-btn" onclick="DB('+b.id+')">DEL</button>';
         h+='</div></div>';
       });
-      if(!d.length) h='<div class="empty-msg">No custom buttons yet \u2014 add one above!</div>';
+      if(!d.length) h='<div class="empty-msg">No custom buttons yet</div>';
       document.getElementById('cl').innerHTML=h;
     })
-    .catch(function(){document.getElementById('cl').innerHTML='<div class="empty-msg" style="color:#ff6b6b">Failed to load</div>';});
+    .catch(function(){document.getElementById('cl').innerHTML='<div class="empty-msg" style="color:#f87171">Failed to load</div>';});
 }
 
-/* ── Send custom code ────────────────────────── */
+/* -- Send custom code -- */
 function SC(code){
-  st.style.color='#48dbfb';st.textContent='Sending 0x'+code+' \u2026';
+  st.style.color='#818cf8';st.textContent='Sending 0x'+code+' ...';
   fetch('/api/send?code='+code)
     .then(function(r){return r.json()})
     .then(function(d){
-      st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Sent 0x'+code:'\u2718 Failed';
+      st.style.color=d.ok?'#34d399':'#f87171';
+      st.textContent=d.ok?'Sent 0x'+code+' successfully':'Failed to send';
     })
-    .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
+    .catch(function(){st.style.color='#f87171';st.textContent='Connection error';});
 }
 
-/* ── Add custom button ───────────────────────── */
+/* -- Add custom button -- */
 function AB(){
   var n=document.getElementById('cn').value.trim();
   var c=document.getElementById('cc').value.trim().replace(/^0x/i,'').toUpperCase();
-  if(!n||!c){st.style.color='#ff6b6b';st.textContent='Enter name and HEX code';return;}
-  if(!/^[0-9A-F]{1,8}$/.test(c)){st.style.color='#ff6b6b';st.textContent='Invalid HEX code';return;}
+  if(!n||!c){st.style.color='#f87171';st.textContent='Enter name and HEX code';return;}
+  if(!/^[0-9A-F]{1,8}$/.test(c)){st.style.color='#f87171';st.textContent='Invalid HEX code';return;}
   while(c.length<8)c='0'+c;
   fetch('/api/custom/add?name='+encodeURIComponent(n)+'&code='+c)
     .then(function(r){return r.json()})
     .then(function(d){
-      st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Button added':'\u2718 '+(d.msg||'Error');
+      st.style.color=d.ok?'#34d399':'#f87171';
+      st.textContent=d.ok?'Button added':'Error: '+(d.msg||'Unknown');
       if(d.ok){document.getElementById('cn').value='';document.getElementById('cc').value='';LC();}
     })
-    .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
+    .catch(function(){st.style.color='#f87171';st.textContent='Connection error';});
 }
 
-/* ── Edit custom button ──────────────────────── */
+/* -- Edit custom button -- */
 function EB(id,name,code){
   var n=prompt('Button name:',name);if(n===null)return;
   var c=prompt('HEX code (without 0x):',code);if(c===null)return;
   c=c.replace(/^0x/i,'').toUpperCase();
-  if(!/^[0-9A-F]{1,8}$/.test(c)){st.style.color='#ff6b6b';st.textContent='Invalid HEX code';return;}
+  if(!/^[0-9A-F]{1,8}$/.test(c)){st.style.color='#f87171';st.textContent='Invalid HEX code';return;}
   while(c.length<8)c='0'+c;
   fetch('/api/custom/edit?id='+id+'&name='+encodeURIComponent(n)+'&code='+c)
     .then(function(r){return r.json()})
     .then(function(d){
-      st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Updated':'\u2718 '+(d.msg||'Error');
+      st.style.color=d.ok?'#34d399':'#f87171';
+      st.textContent=d.ok?'Updated':'Error: '+(d.msg||'Unknown');
       LC();
     })
-    .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
+    .catch(function(){st.style.color='#f87171';st.textContent='Connection error';});
 }
 
-/* ── Delete custom button ────────────────────── */
+/* -- Delete custom button -- */
 function DB(id){
   if(!confirm('Delete this button?'))return;
   fetch('/api/custom/delete?id='+id)
     .then(function(r){return r.json()})
     .then(function(d){
-      st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Deleted':'\u2718 '+(d.msg||'Error');
+      st.style.color=d.ok?'#34d399':'#f87171';
+      st.textContent=d.ok?'Deleted':'Error: '+(d.msg||'Unknown');
       LC();
     })
-    .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
+    .catch(function(){st.style.color='#f87171';st.textContent='Connection error';});
 }
 
-/* ── Helpers ─────────────────────────────────── */
+/* -- Helpers -- */
 function E(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;}
 function EA(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 
-/* ── Reset WiFi ──────────────────────────────── */
+/* -- Reset WiFi -- */
 function RW(){
   if(!confirm('Reset WiFi credentials?\n\nThe ESP32 will reboot into setup mode.\nYou will need to connect to "RGB_IR_Setup" WiFi to reconfigure.'))return;
-  st.style.color='#48dbfb';st.textContent='Resetting WiFi...';
+  st.style.color='#818cf8';st.textContent='Resetting WiFi...';
   fetch('/api/wifi/reset')
     .then(function(r){return r.json()})
     .then(function(d){
-      st.style.color='#feca57';
-      st.textContent='\u2714 WiFi erased \u2014 rebooting into setup mode...';
+      st.style.color='#fbbf24';
+      st.textContent='WiFi erased - rebooting into setup mode...';
     })
-    .catch(function(){st.style.color='#feca57';st.textContent='Rebooting...';});
+    .catch(function(){st.style.color='#fbbf24';st.textContent='Rebooting...';});
 }
 
 LC();
