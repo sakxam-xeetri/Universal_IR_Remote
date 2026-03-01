@@ -21,29 +21,19 @@ void initIR() {
 }
 
 /**
- * Send a 32-bit NEC IR code.
+ * Send a 32-bit NEC IR code using the raw/old-style API.
  *
- * @param code  The NEC code in standard notation:
- *              0xAABBCCDD  where AA=Address, BB=~Address,
- *              CC=Command, DD=~Command
- *              Example: 0x00F720DF  (Red button)
+ * @param code  Full NEC code, e.g. 0xF720DF (Red button)
+ *              Leading zeros are ignored (0x00F720DF == 0xF720DF).
  * @return true on success
  */
 bool sendIRCode(uint32_t code) {
-    uint8_t addr    = (code >> 24) & 0xFF;   // Address byte
-    uint8_t addrInv = (code >> 16) & 0xFF;   // ~Address (or non-standard)
-    uint8_t cmd     = (code >>  8) & 0xFF;   // Command byte
-    uint8_t cmdInv  =  code        & 0xFF;   // ~Command (or non-standard)
+    Serial.printf("[IR] Sending 0x%X\n", code);
 
-    Serial.printf("[IR] Sending 0x%08X  Addr:0x%02X  Cmd:0x%02X\n",
-                  code, addr, cmd);
-
-    // Use 16-bit address & command so IRremote sends all 4 bytes
-    // exactly as specified — works for both standard and non-standard
-    // NEC complements (e.g. address 0x00/0xF7 on many RGB remotes).
-    uint16_t address = ((uint16_t)addrInv << 8) | addr;
-    uint16_t command = ((uint16_t)cmdInv  << 8) | cmd;
-    IrSender.sendNEC(address, command, 2);
+    // Use the old-style raw API: sendNEC(rawData, bits)
+    // This is the same call as: IrSender.sendNEC(0xF720DF, 32)
+    // which the user confirmed works with their RGB strip.
+    IrSender.sendNEC(code, 32);
 
     return true;
 }
