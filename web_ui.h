@@ -241,44 +241,44 @@ body{
   <div class="grid">
 
     <!-- Row 1: Brightness + / - / OFF / ON -->
-    <button class="btn bright" onclick="S(this,'00FF00FF')" title="Brightness Up">&#9728;</button>
-    <button class="btn bright" onclick="S(this,'00FF807F')" title="Brightness Down" style="font-size:1rem">&#9788;</button>
-    <button class="btn rect c-off" onclick="S(this,'00FF40BF')">OFF</button>
-    <button class="btn rect c-on"  onclick="S(this,'00FFC03F')">ON</button>
+    <button class="btn bright" onclick="S(this,'00F700FF')" title="Brightness Up">&#9728;</button>
+    <button class="btn bright" onclick="S(this,'00F7807F')" title="Brightness Down" style="font-size:1rem">&#9788;</button>
+    <button class="btn rect c-off" onclick="S(this,'00F740BF')">OFF</button>
+    <button class="btn rect c-on"  onclick="S(this,'00F7C03F')">ON</button>
 
     <div class="sep"></div>
 
     <!-- Row 2: R / G / B / W -->
-    <button class="btn circle c-red"   onclick="S(this,'00FF20DF')">R</button>
-    <button class="btn circle c-green" onclick="S(this,'00FFA05F')">G</button>
-    <button class="btn circle c-blue"  onclick="S(this,'00FF609F')">B</button>
-    <button class="btn circle c-white" onclick="S(this,'00FFE01F')">W</button>
+    <button class="btn circle c-red"   onclick="S(this,'00F720DF')">R</button>
+    <button class="btn circle c-green" onclick="S(this,'00F7A05F')">G</button>
+    <button class="btn circle c-blue"  onclick="S(this,'00F7609F')">B</button>
+    <button class="btn circle c-white" onclick="S(this,'00F7E01F')">W</button>
 
     <div class="sep"></div>
 
     <!-- Row 3 -->
-    <button class="btn circle c-r3" onclick="S(this,'00FF10EF')"></button>
-    <button class="btn circle c-g3" onclick="S(this,'00FF906F')"></button>
-    <button class="btn circle c-b3" onclick="S(this,'00FF50AF')"></button>
-    <button class="btn rect c-func" onclick="S(this,'00FFD02F')">FLASH</button>
+    <button class="btn circle c-r3" onclick="S(this,'00F710EF')"></button>
+    <button class="btn circle c-g3" onclick="S(this,'00F7906F')"></button>
+    <button class="btn circle c-b3" onclick="S(this,'00F750AF')"></button>
+    <button class="btn rect c-func" onclick="S(this,'00F7D02F')">FLASH</button>
 
     <!-- Row 4 -->
-    <button class="btn circle c-r4" onclick="S(this,'00FF30CF')"></button>
-    <button class="btn circle c-g4" onclick="S(this,'00FFB04F')"></button>
-    <button class="btn circle c-b4" onclick="S(this,'00FF708F')"></button>
-    <button class="btn rect c-func" onclick="S(this,'00FFF00F')">STROBE</button>
+    <button class="btn circle c-r4" onclick="S(this,'00F730CF')"></button>
+    <button class="btn circle c-g4" onclick="S(this,'00F7B04F')"></button>
+    <button class="btn circle c-b4" onclick="S(this,'00F7708F')"></button>
+    <button class="btn rect c-func" onclick="S(this,'00F7F00F')">STROBE</button>
 
     <!-- Row 5 -->
-    <button class="btn circle c-r5" onclick="S(this,'00FF08F7')"></button>
-    <button class="btn circle c-g5" onclick="S(this,'00FF8877')"></button>
-    <button class="btn circle c-b5" onclick="S(this,'00FF48B7')"></button>
-    <button class="btn rect c-func" onclick="S(this,'00FFC837')">FADE</button>
+    <button class="btn circle c-r5" onclick="S(this,'00F708F7')"></button>
+    <button class="btn circle c-g5" onclick="S(this,'00F78877')"></button>
+    <button class="btn circle c-b5" onclick="S(this,'00F748B7')"></button>
+    <button class="btn rect c-func" onclick="S(this,'00F7C837')">FADE</button>
 
     <!-- Row 6 -->
-    <button class="btn circle c-r6" onclick="S(this,'00FF28D7')"></button>
-    <button class="btn circle c-g6" onclick="S(this,'00FFA857')"></button>
-    <button class="btn circle c-b6" onclick="S(this,'00FF6897')"></button>
-    <button class="btn rect c-func" onclick="S(this,'00FFE817')">SMOOTH</button>
+    <button class="btn circle c-r6" onclick="S(this,'00F728D7')"></button>
+    <button class="btn circle c-g6" onclick="S(this,'00F7A857')"></button>
+    <button class="btn circle c-b6" onclick="S(this,'00F76897')"></button>
+    <button class="btn rect c-func" onclick="S(this,'00F7E817')">SMOOTH</button>
 
   </div>
   <div class="status" id="st">Ready</div>
