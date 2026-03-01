@@ -1,9 +1,14 @@
 /*
  * =============================================================
- *  Web UI – Embedded HTML / CSS / JavaScript
+ *  Web UI – Remote Page (matches physical 24-key remote)
  * =============================================================
- *  Stored as a PROGMEM raw-string literal so it lives in flash.
- *  Served to the browser by the web-handler module.
+ *  Layout mirrors the actual remote control image exactly:
+ *    Row 1: ☀+  ☀-  OFF  ON
+ *    Row 2:  R   G    B   W
+ *    Row 3: 🟠  🟢  🔵  FLASH
+ *    Row 4: 🟠  🟢  🟣  STROBE
+ *    Row 5: 🟡  🔵  🩷  FADE
+ *    Row 6: 🟡  🔵  🩷  SMOOTH
  * =============================================================
  */
 
@@ -12,6 +17,9 @@
 
 #include <Arduino.h>
 
+// ═════════════════════════════════════════════════════════════
+//  PAGE 1 — REMOTE CONTROL
+// ═════════════════════════════════════════════════════════════
 const char INDEX_HTML[] PROGMEM = R"==(
 <!DOCTYPE html>
 <html lang="en">
@@ -21,290 +29,479 @@ const char INDEX_HTML[] PROGMEM = R"==(
 <title>RGB IR Remote</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html{height:100%}
+html,body{height:100%}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  background:linear-gradient(160deg,#0a0a14 0%,#111128 40%,#0d1b2a 100%);
-  min-height:100vh;
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background:#1a1a2e;
   display:flex;flex-direction:column;align-items:center;
-  padding:16px 8px 30px;
+  min-height:100vh;
+  color:#e0e0e0;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  padding:0 0 20px;
+}
+
+/* ── Top Bar ─────────────────────────────────── */
+.topbar{
+  width:100%;padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(0,0,0,.3);
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.topbar .title{
+  font-size:1.05rem;font-weight:800;letter-spacing:1.5px;
+  background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.topbar .nav-link{
+  color:#48dbfb;text-decoration:none;font-size:.82rem;font-weight:600;
+  padding:6px 14px;border-radius:8px;
+  border:1px solid rgba(72,219,251,.3);
+  transition:all .2s;
+}
+.topbar .nav-link:hover{background:rgba(72,219,251,.12)}
+
+/* ── Remote Body ─────────────────────────────── */
+.remote-wrap{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:12px 10px;width:100%;
+}
+.remote{
+  background:linear-gradient(180deg,#f5f5f5 0%,#e8e8e8 50%,#ddd 100%);
+  border-radius:30px;
+  padding:24px 18px 20px;
+  max-width:320px;width:100%;
+  box-shadow:0 25px 80px rgba(0,0,0,.6),
+             0 2px 0 #fff inset,
+             0 -2px 4px rgba(0,0,0,.15) inset;
+  border:2px solid #ccc;
+  position:relative;
+}
+.remote::before{
+  content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  width:20px;height:4px;border-radius:2px;background:rgba(0,0,0,.12);
+}
+
+/* ── Grid ────────────────────────────────────── */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:8px 0;
+}
+
+/* ── Separator ───────────────────────────────── */
+.sep{
+  grid-column:1/-1;height:0;margin:2px 0;
+}
+
+/* ── Base Button ─────────────────────────────── */
+.btn{
+  display:flex;align-items:center;justify-content:center;
+  border:none;cursor:pointer;
+  font-weight:700;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
+  transition:transform .12s ease,box-shadow .2s;
+  position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.85)!important}
+
+/* ── Circle Buttons (colors) ─────────────────── */
+.btn.circle{
+  width:58px;height:58px;border-radius:50%;
+  margin:0 auto;
+  box-shadow:0 4px 10px rgba(0,0,0,.3),
+             inset 0 2px 4px rgba(255,255,255,.25),
+             inset 0 -2px 4px rgba(0,0,0,.15);
+  font-size:.75rem;letter-spacing:.5px;
+}
+
+/* ── Rounded Rect Buttons (controls) ─────────── */
+.btn.rect{
+  border-radius:10px;
+  padding:10px 4px;
+  min-height:44px;
+  font-size:.72rem;letter-spacing:.3px;
+  box-shadow:0 3px 8px rgba(0,0,0,.25),
+             inset 0 1px 2px rgba(255,255,255,.2);
+}
+
+/* ── Click Flash ─────────────────────────────── */
+.btn.flash-fx{animation:flashpulse .35s ease}
+@keyframes flashpulse{
+  0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}
+  100%{box-shadow:0 0 0 16px rgba(255,255,255,0)}
+}
+
+/* ── Brightness Buttons ──────────────────────── */
+.btn.bright{
+  background:linear-gradient(180deg,#e0e0e0,#c4c4c4);
+  color:#333;text-shadow:none;
+  border-radius:50%;width:58px;height:58px;margin:0 auto;
+  box-shadow:0 3px 8px rgba(0,0,0,.2),inset 0 1px 3px rgba(255,255,255,.6);
+  font-size:1.3rem;
+}
+
+/* ── Row 1: OFF / ON ─────────────────────────── */
+.c-off{background:linear-gradient(180deg,#e8e8e8,#c8c8c8);color:#333;text-shadow:none;
+  box-shadow:0 3px 8px rgba(0,0,0,.2),inset 0 1px 3px rgba(255,255,255,.5)}
+.c-on{background:linear-gradient(180deg,#ff4444,#cc2222);
+  box-shadow:0 4px 12px rgba(255,0,0,.3),inset 0 1px 3px rgba(255,255,255,.2)}
+
+/* ── Row 2: R G B W ──────────────────────────── */
+.c-red{background:linear-gradient(180deg,#ff2020,#cc0000);
+  box-shadow:0 4px 14px rgba(255,0,0,.4),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+.c-green{background:linear-gradient(180deg,#22cc22,#009900);
+  box-shadow:0 4px 14px rgba(0,200,0,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+.c-blue{background:linear-gradient(180deg,#2244ff,#0022cc);
+  box-shadow:0 4px 14px rgba(0,50,255,.4),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+.c-white{background:linear-gradient(180deg,#f0f0f0,#cccccc);color:#333;text-shadow:none;
+  box-shadow:0 4px 10px rgba(0,0,0,.2),inset 0 2px 4px rgba(255,255,255,.5),inset 0 -2px 4px rgba(0,0,0,.1)}
+
+/* ── Row 3 Colors ────────────────────────────── */
+.c-r3{background:linear-gradient(180deg,#ff8833,#dd6600);
+  box-shadow:0 4px 12px rgba(255,120,0,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+.c-g3{background:linear-gradient(180deg,#33dd66,#11aa44);
+  box-shadow:0 4px 12px rgba(50,220,100,.3),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+.c-b3{background:linear-gradient(180deg,#3355dd,#1133bb);
+  box-shadow:0 4px 12px rgba(50,80,220,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+
+/* ── Row 4 Colors ────────────────────────────── */
+.c-r4{background:linear-gradient(180deg,#ff5522,#dd3300);
+  box-shadow:0 4px 12px rgba(255,80,30,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+.c-g4{background:linear-gradient(180deg,#22cccc,#009999);
+  box-shadow:0 4px 12px rgba(30,200,200,.3),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+.c-b4{background:linear-gradient(180deg,#9944ee,#7722cc);
+  box-shadow:0 4px 12px rgba(150,60,230,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+
+/* ── Row 5 Colors ────────────────────────────── */
+.c-r5{background:linear-gradient(180deg,#ffcc00,#ddaa00);color:#333;text-shadow:none;
+  box-shadow:0 4px 12px rgba(255,200,0,.35),inset 0 2px 4px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.1)}
+.c-g5{background:linear-gradient(180deg,#33bbee,#1199cc);
+  box-shadow:0 4px 12px rgba(50,180,230,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+.c-b5{background:linear-gradient(180deg,#ff44aa,#dd2288);
+  box-shadow:0 4px 12px rgba(255,60,160,.35),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+
+/* ── Row 6 Colors ────────────────────────────── */
+.c-r6{background:linear-gradient(180deg,#ffee66,#ddcc33);color:#333;text-shadow:none;
+  box-shadow:0 4px 12px rgba(255,230,80,.3),inset 0 2px 4px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.1)}
+.c-g6{background:linear-gradient(180deg,#66ddff,#44bbdd);color:#1a3a4a;text-shadow:none;
+  box-shadow:0 4px 12px rgba(100,220,255,.3),inset 0 2px 4px rgba(255,255,255,.3),inset 0 -2px 4px rgba(0,0,0,.1)}
+.c-b6{background:linear-gradient(180deg,#ff88cc,#dd66aa);
+  box-shadow:0 4px 12px rgba(255,130,200,.3),inset 0 2px 4px rgba(255,255,255,.2),inset 0 -2px 4px rgba(0,0,0,.15)}
+
+/* ── Function Buttons (FLASH/STROBE/FADE/SMOOTH) */
+.c-func{
+  background:linear-gradient(180deg,#d8d8d8,#b8b8b8);
+  color:#333;text-shadow:none;
+  box-shadow:0 3px 8px rgba(0,0,0,.2),inset 0 1px 3px rgba(255,255,255,.5);
+}
+
+/* ── Status Bar ──────────────────────────────── */
+.status{
+  text-align:center;padding:8px 4px 0;
+  font-size:.7rem;color:#888;min-height:22px;
+  transition:color .3s;font-weight:500;
+}
+
+/* ── Footer info ─────────────────────────────── */
+.info{
+  text-align:center;padding:10px;
+  font-size:.6rem;color:#444;letter-spacing:.5px;
+}
+.info a{color:#48dbfb;text-decoration:none}
+
+/* ── Responsive tweaks ───────────────────────── */
+@media(max-width:340px){
+  .remote{padding:18px 12px 16px}
+  .grid{gap:7px}
+  .btn.circle{width:50px;height:50px;font-size:.65rem}
+  .btn.bright{width:50px;height:50px;font-size:1.1rem}
+  .btn.rect{padding:8px 3px;font-size:.65rem}
+}
+@media(min-width:400px){
+  .btn.circle{width:64px;height:64px}
+  .btn.bright{width:64px;height:64px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="title">RGB IR REMOTE</span>
+  <a href="/custom" class="nav-link">&#9881; Custom</a>
+</div>
+
+<!-- REMOTE -->
+<div class="remote-wrap">
+<div class="remote">
+  <div class="grid">
+
+    <!-- Row 1: Brightness + / - / OFF / ON -->
+    <button class="btn bright" onclick="S(this,'00FF00FF')" title="Brightness Up">&#9728;</button>
+    <button class="btn bright" onclick="S(this,'00FF807F')" title="Brightness Down" style="font-size:1rem">&#9788;</button>
+    <button class="btn rect c-off" onclick="S(this,'00FF40BF')">OFF</button>
+    <button class="btn rect c-on"  onclick="S(this,'00FFC03F')">ON</button>
+
+    <div class="sep"></div>
+
+    <!-- Row 2: R / G / B / W -->
+    <button class="btn circle c-red"   onclick="S(this,'00FF20DF')">R</button>
+    <button class="btn circle c-green" onclick="S(this,'00FFA05F')">G</button>
+    <button class="btn circle c-blue"  onclick="S(this,'00FF609F')">B</button>
+    <button class="btn circle c-white" onclick="S(this,'00FFE01F')">W</button>
+
+    <div class="sep"></div>
+
+    <!-- Row 3 -->
+    <button class="btn circle c-r3" onclick="S(this,'00FF10EF')"></button>
+    <button class="btn circle c-g3" onclick="S(this,'00FF906F')"></button>
+    <button class="btn circle c-b3" onclick="S(this,'00FF50AF')"></button>
+    <button class="btn rect c-func" onclick="S(this,'00FFD02F')">FLASH</button>
+
+    <!-- Row 4 -->
+    <button class="btn circle c-r4" onclick="S(this,'00FF30CF')"></button>
+    <button class="btn circle c-g4" onclick="S(this,'00FFB04F')"></button>
+    <button class="btn circle c-b4" onclick="S(this,'00FF708F')"></button>
+    <button class="btn rect c-func" onclick="S(this,'00FFF00F')">STROBE</button>
+
+    <!-- Row 5 -->
+    <button class="btn circle c-r5" onclick="S(this,'00FF08F7')"></button>
+    <button class="btn circle c-g5" onclick="S(this,'00FF8877')"></button>
+    <button class="btn circle c-b5" onclick="S(this,'00FF48B7')"></button>
+    <button class="btn rect c-func" onclick="S(this,'00FFC837')">FADE</button>
+
+    <!-- Row 6 -->
+    <button class="btn circle c-r6" onclick="S(this,'00FF28D7')"></button>
+    <button class="btn circle c-g6" onclick="S(this,'00FFA857')"></button>
+    <button class="btn circle c-b6" onclick="S(this,'00FF6897')"></button>
+    <button class="btn rect c-func" onclick="S(this,'00FFE817')">SMOOTH</button>
+
+  </div>
+  <div class="status" id="st">Ready</div>
+</div>
+</div>
+
+<div class="info">ESP32 Universal IR Remote &bull; <a href="https://sakshyambastakoti.com.np" target="_blank">Sakshyam Bastakoti</a></div>
+
+<script>
+var st=document.getElementById('st');
+function S(el,code){
+  el.classList.remove('flash-fx');void el.offsetWidth;el.classList.add('flash-fx');
+  st.style.color='#48dbfb';st.textContent='Sending 0x'+code+' \u2026';
+  fetch('/api/send?code='+code)
+    .then(function(r){return r.json()})
+    .then(function(d){
+      st.style.color=d.ok?'#2ecc71':'#ff6b6b';
+      st.textContent=d.ok?'\u2714 Sent 0x'+code:'\u2718 Failed';
+    })
+    .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
+}
+</script>
+</body>
+</html>
+)==";
+
+
+// ═════════════════════════════════════════════════════════════
+//  PAGE 2 — CUSTOM COMMANDS
+// ═════════════════════════════════════════════════════════════
+const char CUSTOM_HTML[] PROGMEM = R"==(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Custom Commands - RGB IR Remote</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background:#1a1a2e;
+  min-height:100vh;
   color:#e0e0e0;
   -webkit-tap-highlight-color:transparent;
   user-select:none;
 }
 
-/* ── Header ─────────────────────────────────────── */
-.hdr{text-align:center;margin-bottom:14px}
-.hdr h1{
-  font-size:1.5rem;letter-spacing:2px;font-weight:800;
+/* ── Top Bar ─────────────────────────────────── */
+.topbar{
+  width:100%;padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(0,0,0,.3);
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.topbar .title{
+  font-size:1.05rem;font-weight:800;letter-spacing:1.5px;
   background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   background-clip:text;
 }
-.hdr p{font-size:.72rem;color:#555;margin-top:3px;letter-spacing:.5px}
-
-/* ── Remote body ────────────────────────────────── */
-.remote{
-  background:linear-gradient(180deg,#1c1c32 0%,#14142a 100%);
-  border-radius:28px;padding:20px 14px 14px;
-  max-width:370px;width:100%;
-  box-shadow:0 20px 60px rgba(0,0,0,.55),
-             inset 0 1px 0 rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.07);
+.topbar .nav-link{
+  color:#48dbfb;text-decoration:none;font-size:.82rem;font-weight:600;
+  padding:6px 14px;border-radius:8px;
+  border:1px solid rgba(72,219,251,.3);
+  transition:all .2s;
 }
-.remote-label{
-  text-align:center;font-size:.65rem;color:#444;
-  margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;
+.topbar .nav-link:hover{background:rgba(72,219,251,.12)}
+
+/* ── Content ─────────────────────────────────── */
+.content{
+  max-width:440px;margin:0 auto;padding:20px 14px 30px;
 }
 
-/* ── Button grid ────────────────────────────────── */
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-.sep{
-  grid-column:1/-1;height:1px;margin:3px 0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
-}
-.row-label{
-  grid-column:1/-1;font-size:.55rem;color:#444;
-  padding:2px 4px 0;letter-spacing:.5px;text-transform:uppercase;
-}
-
-/* ── Button base ────────────────────────────────── */
-.btn{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:10px 3px;border-radius:11px;border:none;cursor:pointer;
-  font-size:.7rem;font-weight:700;color:#fff;
-  text-shadow:0 1px 3px rgba(0,0,0,.6);
-  transition:transform .1s ease,box-shadow .25s ease;
-  min-height:56px;position:relative;overflow:hidden;
-  box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12);
-}
-.btn:active{transform:scale(.88)}
-.btn .lbl{pointer-events:none;line-height:1.1;text-align:center}
-.btn .hex{
-  font-size:.42rem;opacity:.55;margin-top:3px;
-  font-weight:400;pointer-events:none;font-family:monospace;letter-spacing:.3px;
-}
-
-/* ── Click flash animation ──────────────────────── */
-.btn.flash-fx{animation:pulse .4s ease}
-@keyframes pulse{
-  0%  {box-shadow:0 0 0 0 rgba(255,255,255,.55)}
-  100%{box-shadow:0 0 0 18px rgba(255,255,255,0)}
-}
-
-/* ── Status bar ─────────────────────────────────── */
-.status{
-  text-align:center;padding:8px 4px;margin-top:8px;
-  font-size:.72rem;color:#48dbfb;min-height:28px;
-  transition:color .3s;
-}
-
-/* ── Section panels ─────────────────────────────── */
-.panel{
-  margin-top:18px;max-width:370px;width:100%;
-  background:linear-gradient(180deg,#1c1c32,#14142a);
-  border-radius:22px;padding:18px 14px;
+/* ── Section Card ────────────────────────────── */
+.card{
+  background:linear-gradient(180deg,#1e1e3a,#16162e);
+  border-radius:18px;padding:20px 16px;
   border:1px solid rgba(255,255,255,.06);
-  box-shadow:0 12px 36px rgba(0,0,0,.35);
+  box-shadow:0 12px 40px rgba(0,0,0,.4);
+  margin-bottom:18px;
 }
-.panel h2{font-size:.92rem;margin-bottom:12px;color:#48dbfb;letter-spacing:.5px}
-
-/* ── Input / action rows ────────────────────────── */
-.irow{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.irow input{
-  flex:1;min-width:90px;padding:9px 12px;border-radius:9px;
-  border:1px solid #2a2a44;background:#0e0e1e;color:#ddd;
-  font-size:.82rem;outline:none;transition:border-color .2s;
+.card h2{
+  font-size:.95rem;margin-bottom:14px;color:#48dbfb;
+  letter-spacing:.5px;display:flex;align-items:center;gap:8px;
 }
-.irow input:focus{border-color:#48dbfb}
-.irow input::placeholder{color:#444}
 
+/* ── Status Bar ──────────────────────────────── */
+.status{
+  text-align:center;padding:10px 4px;
+  font-size:.75rem;color:#48dbfb;min-height:28px;
+  transition:color .3s;font-weight:500;
+}
+
+/* ── Quick Send Section ──────────────────────── */
+.qrow{display:flex;gap:8px}
+.qrow input{
+  flex:1;padding:12px 14px;border-radius:10px;
+  border:1px solid #2a2a48;background:#0e0e20;color:#ddd;
+  font-size:.95rem;font-family:'Courier New',monospace;
+  outline:none;transition:border-color .2s;letter-spacing:1.5px;
+}
+.qrow input:focus{border-color:#48dbfb}
+.qrow input::placeholder{color:#3a3a5a;letter-spacing:0}
+
+/* ── Buttons ─────────────────────────────────── */
 .abtn{
-  padding:9px 16px;border-radius:9px;border:none;cursor:pointer;
-  font-size:.75rem;font-weight:700;color:#fff;
+  padding:10px 18px;border-radius:10px;border:none;cursor:pointer;
+  font-size:.8rem;font-weight:700;color:#fff;white-space:nowrap;
   transition:transform .1s,filter .2s;
   box-shadow:0 3px 10px rgba(0,0,0,.3);
 }
 .abtn:active{transform:scale(.93)}
-.abtn.primary{background:linear-gradient(180deg,#48dbfb,#2e9ab8)}
 .abtn.send{background:linear-gradient(180deg,#0abde3,#0897b4)}
-.abtn.edit-btn{background:linear-gradient(180deg,#feca57,#d4a520);color:#222;font-size:.65rem;padding:6px 10px}
-.abtn.del-btn{background:linear-gradient(180deg,#ff6b6b,#cc4444);font-size:.65rem;padding:6px 10px}
+.abtn.primary{background:linear-gradient(180deg,#48dbfb,#2e9ab8)}
+.abtn.edit-btn{background:linear-gradient(180deg,#feca57,#d4a520);color:#222;font-size:.7rem;padding:8px 12px}
+.abtn.del-btn{background:linear-gradient(180deg,#ff6b6b,#cc4444);font-size:.7rem;padding:8px 12px}
 
-/* ── Custom button list ─────────────────────────── */
-.clist{margin-top:8px}
+/* ── Add Button Form ─────────────────────────── */
+.form-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.form-row input{
+  flex:1;min-width:100px;padding:11px 14px;border-radius:10px;
+  border:1px solid #2a2a48;background:#0e0e20;color:#ddd;
+  font-size:.85rem;outline:none;transition:border-color .2s;
+}
+.form-row input:focus{border-color:#48dbfb}
+.form-row input::placeholder{color:#3a3a5a}
+.form-row .hex-input{font-family:'Courier New',monospace;letter-spacing:1px}
+
+/* ── Custom Button List ──────────────────────── */
+.clist{margin-top:6px}
 .citem{
-  display:flex;align-items:center;gap:8px;
-  padding:9px 10px;margin-bottom:6px;border-radius:10px;
-  background:rgba(255,255,255,.025);
-  border:1px solid rgba(255,255,255,.04);
+  display:flex;align-items:center;gap:10px;
+  padding:12px 12px;margin-bottom:8px;border-radius:12px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.05);
   transition:background .2s;
 }
-.citem:hover{background:rgba(255,255,255,.05)}
-.citem .cn{flex:1;font-size:.8rem;font-weight:600}
-.citem .cc{font-size:.72rem;color:#666;font-family:monospace}
-.citem .ca{display:flex;gap:5px}
-
-/* ── Quick-send row ─────────────────────────────── */
-.qrow{display:flex;gap:8px}
-.qrow input{
-  flex:1;padding:10px 14px;border-radius:9px;
-  border:1px solid #2a2a44;background:#0e0e1e;color:#ddd;
-  font-size:.9rem;font-family:monospace;outline:none;
-  transition:border-color .2s;letter-spacing:1px;
+.citem:hover{background:rgba(255,255,255,.06)}
+.citem .cname{flex:1;font-size:.85rem;font-weight:600}
+.citem .ccode{
+  font-size:.78rem;color:#666;font-family:'Courier New',monospace;
+  letter-spacing:.5px;
 }
-.qrow input:focus{border-color:#0abde3}
-.qrow input::placeholder{color:#444}
+.citem .actions{display:flex;gap:6px;flex-shrink:0}
+.empty-msg{
+  text-align:center;padding:18px 10px;
+  font-size:.8rem;color:#3a3a5a;
+}
 
-/* ── Footer ─────────────────────────────────────── */
-.foot{text-align:center;padding:22px 0 6px;font-size:.55rem;color:#333}
-
-/* ══════════════════════════════════════════════════
-   BUTTON COLOR CLASSES  (gradient backgrounds)
-   ══════════════════════════════════════════════════ */
-.c-bup   {background:linear-gradient(180deg,#5a5a6e,#3e3e52)}
-.c-bdn   {background:linear-gradient(180deg,#48485c,#32324a)}
-.c-off   {background:linear-gradient(180deg,#a82020,#6e1414)}
-.c-on    {background:linear-gradient(180deg,#1da81d,#126e12)}
-.c-red   {background:linear-gradient(180deg,#ff1a1a,#cc0000)}
-.c-green {background:linear-gradient(180deg,#00cc00,#009200)}
-.c-blue  {background:linear-gradient(180deg,#1a5aff,#0044cc)}
-.c-white {background:linear-gradient(180deg,#e8e8e8,#c0c0c0);color:#1a1a1a;text-shadow:none}
-.c-r2    {background:linear-gradient(180deg,#ff7722,#cc5500)}
-.c-g2    {background:linear-gradient(180deg,#22ff66,#00cc44);color:#1a1a1a;text-shadow:none}
-.c-b2    {background:linear-gradient(180deg,#2266ff,#0044cc)}
-.c-flash {background:linear-gradient(180deg,#daa520,#b38600)}
-.c-r3    {background:linear-gradient(180deg,#ff4422,#cc2200)}
-.c-g3    {background:linear-gradient(180deg,#00cccc,#008f8f)}
-.c-b3    {background:linear-gradient(180deg,#9944ff,#7722cc)}
-.c-strb  {background:linear-gradient(180deg,#c8c800,#8f8f00)}
-.c-r4    {background:linear-gradient(180deg,#ffcc00,#b38f00);color:#1a1a1a;text-shadow:none}
-.c-g4    {background:linear-gradient(180deg,#22ccff,#0099cc)}
-.c-b4    {background:linear-gradient(180deg,#ff22cc,#cc0099)}
-.c-fade  {background:linear-gradient(180deg,#44a844,#2e7a2e)}
-.c-r5    {background:linear-gradient(180deg,#ffff55,#cccc22);color:#1a1a1a;text-shadow:none}
-.c-g5    {background:linear-gradient(180deg,#55ccff,#2299cc)}
-.c-b5    {background:linear-gradient(180deg,#ff55cc,#cc2299)}
-.c-smooth{background:linear-gradient(180deg,#5555aa,#3a3a80)}
+/* ── Info Footer ─────────────────────────────── */
+.info{
+  text-align:center;padding:10px;
+  font-size:.6rem;color:#444;letter-spacing:.5px;
+}
+.info a{color:#48dbfb;text-decoration:none}
 </style>
 </head>
 <body>
 
-<!-- ═══════ HEADER ═══════ -->
-<div class="hdr">
-  <h1>RGB IR REMOTE</h1>
-  <p>ESP32 WiFi IR Controller &bull; NEC 32-bit</p>
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="title">CUSTOM COMMANDS</span>
+  <a href="/" class="nav-link">&#9664; Remote</a>
 </div>
 
-<!-- ═══════ REMOTE ═══════ -->
-<div class="remote">
-  <div class="remote-label">24-Key RGB LED Remote</div>
-  <div class="grid">
+<div class="content">
 
-    <!-- Row 1 – Controls -->
-    <button class="btn c-bup"  onclick="S(this,'00FF00FF')"><span class="lbl">BRIGHT+</span><span class="hex">00FF00FF</span></button>
-    <button class="btn c-bdn"  onclick="S(this,'00FF807F')"><span class="lbl">BRIGHT-</span><span class="hex">00FF807F</span></button>
-    <button class="btn c-off"  onclick="S(this,'00FF40BF')"><span class="lbl">OFF</span><span class="hex">00FF40BF</span></button>
-    <button class="btn c-on"   onclick="S(this,'00FFC03F')"><span class="lbl">ON</span><span class="hex">00FFC03F</span></button>
-
-    <div class="sep"></div>
-
-    <!-- Row 2 – Primary Colors -->
-    <button class="btn c-red"  onclick="S(this,'00FF20DF')"><span class="lbl">RED</span><span class="hex">00FF20DF</span></button>
-    <button class="btn c-green"onclick="S(this,'00FFA05F')"><span class="lbl">GREEN</span><span class="hex">00FFA05F</span></button>
-    <button class="btn c-blue" onclick="S(this,'00FF609F')"><span class="lbl">BLUE</span><span class="hex">00FF609F</span></button>
-    <button class="btn c-white"onclick="S(this,'00FFE01F')"><span class="lbl">WHITE</span><span class="hex">00FFE01F</span></button>
-
-    <div class="sep"></div>
-
-    <!-- Row 3 -->
-    <button class="btn c-r2"   onclick="S(this,'00FF10EF')"><span class="lbl">ORANGE</span><span class="hex">00FF10EF</span></button>
-    <button class="btn c-g2"   onclick="S(this,'00FF906F')"><span class="lbl">LT GREEN</span><span class="hex">00FF906F</span></button>
-    <button class="btn c-b2"   onclick="S(this,'00FF50AF')"><span class="lbl">DK BLUE</span><span class="hex">00FF50AF</span></button>
-    <button class="btn c-flash"onclick="S(this,'00FFD02F')"><span class="lbl">FLASH</span><span class="hex">00FFD02F</span></button>
-
-    <!-- Row 4 -->
-    <button class="btn c-r3"   onclick="S(this,'00FF30CF')"><span class="lbl">DK ORANGE</span><span class="hex">00FF30CF</span></button>
-    <button class="btn c-g3"   onclick="S(this,'00FFB04F')"><span class="lbl">CYAN</span><span class="hex">00FFB04F</span></button>
-    <button class="btn c-b3"   onclick="S(this,'00FF708F')"><span class="lbl">PURPLE</span><span class="hex">00FF708F</span></button>
-    <button class="btn c-strb" onclick="S(this,'00FFF00F')"><span class="lbl">STROBE</span><span class="hex">00FFF00F</span></button>
-
-    <!-- Row 5 -->
-    <button class="btn c-r4"   onclick="S(this,'00FF08F7')"><span class="lbl">YELLOW</span><span class="hex">00FF08F7</span></button>
-    <button class="btn c-g4"   onclick="S(this,'00FF8877')"><span class="lbl">LT BLUE</span><span class="hex">00FF8877</span></button>
-    <button class="btn c-b4"   onclick="S(this,'00FF48B7')"><span class="lbl">PINK</span><span class="hex">00FF48B7</span></button>
-    <button class="btn c-fade" onclick="S(this,'00FFC837')"><span class="lbl">FADE</span><span class="hex">00FFC837</span></button>
-
-    <!-- Row 6 -->
-    <button class="btn c-r5"   onclick="S(this,'00FF28D7')"><span class="lbl">LT YELLOW</span><span class="hex">00FF28D7</span></button>
-    <button class="btn c-g5"   onclick="S(this,'00FFA857')"><span class="lbl">SKY BLUE</span><span class="hex">00FFA857</span></button>
-    <button class="btn c-b5"   onclick="S(this,'00FF6897')"><span class="lbl">LT PINK</span><span class="hex">00FF6897</span></button>
-    <button class="btn c-smooth"onclick="S(this,'00FFE817')"><span class="lbl">SMOOTH</span><span class="hex">00FFE817</span></button>
-
-  </div>
+  <!-- Status -->
   <div class="status" id="st">Ready</div>
-</div>
 
-<!-- ═══════ QUICK SEND ═══════ -->
-<div class="panel">
-  <h2>&#9889; Quick Send</h2>
-  <div class="qrow">
-    <input type="text" id="qhex" placeholder="HEX code  e.g. 00FF20DF" maxlength="10"
-           oninput="this.value=this.value.replace(/[^0-9a-fA-Fx]/g,'')">
-    <button class="abtn send" onclick="QS()">SEND</button>
+  <!-- QUICK SEND -->
+  <div class="card">
+    <h2>&#9889; Quick Send</h2>
+    <div class="qrow">
+      <input type="text" id="qhex" placeholder="HEX  e.g. 00FF20DF" maxlength="10"
+             oninput="this.value=this.value.replace(/[^0-9a-fA-Fx]/g,'')">
+      <button class="abtn send" onclick="QS()">SEND</button>
+    </div>
   </div>
-</div>
 
-<!-- ═══════ CUSTOM BUTTONS ═══════ -->
-<div class="panel">
-  <h2>&#127919; Custom Buttons</h2>
-  <div class="irow">
-    <input type="text" id="cn" placeholder="Button name" maxlength="20">
-    <input type="text" id="cc" placeholder="HEX code" maxlength="10"
-           oninput="this.value=this.value.replace(/[^0-9a-fA-Fx]/g,'')">
-    <button class="abtn primary" onclick="AB()">ADD</button>
+  <!-- ADD CUSTOM BUTTON -->
+  <div class="card">
+    <h2>&#10133; Add Custom Button</h2>
+    <div class="form-row">
+      <input type="text" id="cn" placeholder="Button name" maxlength="20">
+      <input type="text" id="cc" class="hex-input" placeholder="HEX code" maxlength="10"
+             oninput="this.value=this.value.replace(/[^0-9a-fA-Fx]/g,'')">
+      <button class="abtn primary" onclick="AB()">ADD</button>
+    </div>
   </div>
-  <div id="cl" class="clist"></div>
+
+  <!-- SAVED BUTTONS -->
+  <div class="card">
+    <h2>&#128203; Saved Buttons</h2>
+    <div id="cl" class="clist">
+      <div class="empty-msg">Loading...</div>
+    </div>
+  </div>
+
 </div>
 
-<div class="foot">ESP32 Universal IR Remote &bull; v1.0</div>
+<div class="info">ESP32 Universal IR Remote &bull; <a href="https://sakshyambastakoti.com.np" target="_blank">Sakshyam Bastakoti</a></div>
 
-<!-- ═══════ JAVASCRIPT ═══════ -->
 <script>
 var st=document.getElementById('st');
 
-/* ── Send IR code (from remote button) ──────── */
-function S(el,code){
-  el.classList.remove('flash-fx');
-  void el.offsetWidth;
-  el.classList.add('flash-fx');
-  st.style.color='#48dbfb';
-  st.textContent='Sending 0x'+code+' ...';
-  fetch('/api/send?code='+code)
-    .then(function(r){return r.json()})
-    .then(function(d){
-      st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Sent 0x'+code:'\u2718 Send failed';
-    })
-    .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
-}
-
-/* ── Quick Send ─────────────────────────────── */
+/* ── Quick Send ──────────────────────────────── */
 function QS(){
   var c=document.getElementById('qhex').value.trim().replace(/^0x/i,'').toUpperCase();
   if(!c||!/^[0-9A-F]{1,8}$/.test(c)){st.style.color='#ff6b6b';st.textContent='Enter a valid HEX code';return;}
   while(c.length<8)c='0'+c;
-  st.style.color='#48dbfb';st.textContent='Sending 0x'+c+' ...';
+  st.style.color='#48dbfb';st.textContent='Sending 0x'+c+' \u2026';
   fetch('/api/send?code='+c)
     .then(function(r){return r.json()})
     .then(function(d){
       st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Sent 0x'+c:'\u2718 Send failed';
+      st.textContent=d.ok?'\u2714 Sent 0x'+c:'\u2718 Failed';
     })
     .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
 }
 
-/* ── Load custom buttons list ───────────────── */
+/* ── Load custom buttons ─────────────────────── */
 function LC(){
   fetch('/api/custom')
     .then(function(r){return r.json()})
@@ -312,37 +509,37 @@ function LC(){
       var h='';
       d.forEach(function(b){
         h+='<div class="citem">';
-        h+='<span class="cn">'+E(b.name)+'</span>';
-        h+='<span class="cc">0x'+E(b.code)+'</span>';
-        h+='<div class="ca">';
-        h+='<button class="abtn send" style="font-size:.65rem;padding:6px 10px" onclick="SC(\''+E(b.code)+'\')">SEND</button>';
+        h+='<span class="cname">'+E(b.name)+'</span>';
+        h+='<span class="ccode">0x'+E(b.code)+'</span>';
+        h+='<div class="actions">';
+        h+='<button class="abtn send" style="font-size:.7rem;padding:8px 12px" onclick="SC(\''+EA(b.code)+'\')">SEND</button>';
         h+='<button class="abtn edit-btn" onclick="EB('+b.id+',\''+EA(b.name)+'\',\''+EA(b.code)+'\')">EDIT</button>';
         h+='<button class="abtn del-btn" onclick="DB('+b.id+')">DEL</button>';
         h+='</div></div>';
       });
-      if(!d.length)h='<p style="color:#444;font-size:.75rem;text-align:center;padding:10px 0">No custom buttons yet — add one above!</p>';
+      if(!d.length) h='<div class="empty-msg">No custom buttons yet \u2014 add one above!</div>';
       document.getElementById('cl').innerHTML=h;
     })
-    .catch(function(){});
+    .catch(function(){document.getElementById('cl').innerHTML='<div class="empty-msg" style="color:#ff6b6b">Failed to load</div>';});
 }
 
-/* ── Send custom button code ────────────────── */
+/* ── Send custom code ────────────────────────── */
 function SC(code){
-  st.style.color='#48dbfb';st.textContent='Sending 0x'+code+' ...';
+  st.style.color='#48dbfb';st.textContent='Sending 0x'+code+' \u2026';
   fetch('/api/send?code='+code)
     .then(function(r){return r.json()})
     .then(function(d){
       st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Sent 0x'+code:'\u2718 Send failed';
+      st.textContent=d.ok?'\u2714 Sent 0x'+code:'\u2718 Failed';
     })
     .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
 }
 
-/* ── Add custom button ──────────────────────── */
+/* ── Add custom button ───────────────────────── */
 function AB(){
   var n=document.getElementById('cn').value.trim();
   var c=document.getElementById('cc').value.trim().replace(/^0x/i,'').toUpperCase();
-  if(!n||!c){st.style.color='#ff6b6b';st.textContent='Enter button name and HEX code';return;}
+  if(!n||!c){st.style.color='#ff6b6b';st.textContent='Enter name and HEX code';return;}
   if(!/^[0-9A-F]{1,8}$/.test(c)){st.style.color='#ff6b6b';st.textContent='Invalid HEX code';return;}
   while(c.length<8)c='0'+c;
   fetch('/api/custom/add?name='+encodeURIComponent(n)+'&code='+c)
@@ -355,7 +552,7 @@ function AB(){
     .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
 }
 
-/* ── Edit custom button (prompt-based) ──────── */
+/* ── Edit custom button ──────────────────────── */
 function EB(id,name,code){
   var n=prompt('Button name:',name);if(n===null)return;
   var c=prompt('HEX code (without 0x):',code);if(c===null)return;
@@ -366,36 +563,31 @@ function EB(id,name,code){
     .then(function(r){return r.json()})
     .then(function(d){
       st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Button updated':'\u2718 '+(d.msg||'Error');
+      st.textContent=d.ok?'\u2714 Updated':'\u2718 '+(d.msg||'Error');
       LC();
     })
     .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
 }
 
-/* ── Delete custom button ───────────────────── */
+/* ── Delete custom button ────────────────────── */
 function DB(id){
-  if(!confirm('Delete this custom button?'))return;
+  if(!confirm('Delete this button?'))return;
   fetch('/api/custom/delete?id='+id)
     .then(function(r){return r.json()})
     .then(function(d){
       st.style.color=d.ok?'#2ecc71':'#ff6b6b';
-      st.textContent=d.ok?'\u2714 Button deleted':'\u2718 '+(d.msg||'Error');
+      st.textContent=d.ok?'\u2714 Deleted':'\u2718 '+(d.msg||'Error');
       LC();
     })
     .catch(function(){st.style.color='#ff6b6b';st.textContent='\u2718 Connection error';});
 }
 
-/* ── HTML-escape helper ─────────────────────── */
-function E(s){
-  var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;
-}
-/* ── Escape for JS attribute (single-quoted) ── */
+/* ── Helpers ─────────────────────────────────── */
+function E(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;}
 function EA(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 
-/* ── Initial load ───────────────────────────── */
 LC();
 </script>
-
 </body>
 </html>
 )==";
