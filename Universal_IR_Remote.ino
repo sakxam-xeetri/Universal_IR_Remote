@@ -33,6 +33,7 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 
+#include "wifi_manager.h"
 #include "ir_sender.h"
 #include "button_storage.h"
 #include "web_handler.h"
@@ -57,29 +58,18 @@ void setup() {
     // ── 2. Initialise NVS button storage ────────────────────
     initStorage();
 
-    // ── 3. Connect to WiFi network ──────────────────────────
-    WiFi.mode(WIFI_STA);
-    WiFi.setSleep(false);
-    WiFi.setHostname(WIFI_HOSTNAME);
-    WiFi.begin(WIFI_SSID, WIFI_PASS);
-
-    Serial.print(F("[WiFi] Connecting to "));
-    Serial.print(WIFI_SSID);
-
-    int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-        attempts++;
-        if (attempts >= WIFI_CONNECT_TIMEOUT * 2) {
-            Serial.println();
-            Serial.println(F("[WiFi] ERROR – Could not connect!"));
-            Serial.println(F("[WiFi] Check SSID/password in config.h"));
-            Serial.println(F("[WiFi] Restarting in 5 seconds..."));
-            delay(5000);
-            ESP.restart();
-        }
+    // ── 3. Check for WiFi reset (hold BOOT button) ──────────
+    pinMode(WIFI_RESET_PIN, INPUT_PULLUP);
+    delay(100);
+    if (digitalRead(WIFI_RESET_PIN) == LOW) {
+        Serial.println(F("[WiFi] BOOT button held — erasing WiFi credentials"));
+        wifiManagerReset();
+        delay(1000);
     }
+
+    // ── 4. Connect via WiFi Manager ─────────────────────────
+    //    Uses saved credentials, or launches config portal.
+    wifiManagerConnect();
 
     Serial.println();
     Serial.println(F("[WiFi] Connected!"));
@@ -89,7 +79,7 @@ void setup() {
     Serial.println(F(" dBm"));
     Serial.println();
 
-    // ── 4. Start mDNS (http://irremote.local) ──────────────
+    // ── 5. Start mDNS (http://irremote.local) ──────────────
     if (MDNS.begin(WIFI_HOSTNAME)) {
         MDNS.addService("http", "tcp", 80);
         Serial.print(F("[mDNS] http://"));
@@ -99,7 +89,7 @@ void setup() {
         Serial.println(F("[mDNS] Failed to start (use IP instead)"));
     }
 
-    // ── 5. Start web server ─────────────────────────────────
+    // ── 6. Start web server ─────────────────────────────────
     setupWebServer();
 
     Serial.println();
