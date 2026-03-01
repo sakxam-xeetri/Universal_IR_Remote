@@ -14,10 +14,12 @@ A professional WiFi-based IR blaster that fully replaces a **24-key RGB LED stri
 - **mDNS Support** — Access via `http://irremote.local` (no need to remember the IP)
 - **Auto-Reconnect** — Automatically reconnects if WiFi drops
 - **WiFi Reset** — Hold BOOT button at startup, or tap "Reset WiFi" in the web UI
+- **Hardware Mode Button** — Physical push button cycles through 21 colour/effect modes
+- **Liquid Glass UI** — Glassmorphism design with frosted glass cards, animated background orbs, and SVG icons
 - **Remote Page** — Button layout matches the physical 24-key remote exactly
 - **Custom Commands Page** — Separate page for Quick Send and custom buttons
-- **Color-Coded Circular Buttons** — Looks like the real remote
-- **Click Animation** — Visual pulse feedback on every tap
+- **Color-Coded Circular Buttons** — Gradient colours matching the real remote
+- **Ripple Animation** — Visual ripple feedback on every tap
 - **Quick Send** — Enter any arbitrary HEX code and transmit instantly
 - **Custom Buttons** — Create, edit, delete your own buttons
 - **Persistent Storage** — Custom buttons survive reboots (saved in ESP32 NVS flash)
@@ -33,23 +35,30 @@ A professional WiFi-based IR blaster that fully replaces a **24-key RGB LED stri
 | ESP32 Dev Module | Any ESP32 board (e.g. ESP32-WROOM-32) |
 | IR LED | 940nm or 850nm infrared LED |
 | Resistor | 100Ω–220Ω (for IR LED current limiting) |
-| NPN Transistor (optional) | 2N2222 or similar — boosts range significantly |
+| Push Button | Momentary push button for mode cycling |
+| NPN Transistor (optional) | 2N2222 or similar — boosts IR range significantly |
 
 ### Wiring Diagram
 
 ```
-Simple (short range ~2m):
+IR LED (short range ~2m):
 
     ESP32 GPIO 4 ──── 100Ω ──── IR LED Anode (+)
                                 IR LED Cathode (-) ──── GND
 
 
-With transistor (long range ~8m+):
+IR LED with transistor (long range ~8m+):
 
     ESP32 GPIO 4 ──── 1kΩ ──── Base (2N2222)
                                Collector ──── IR LED Cathode (-)
                                Emitter  ──── GND
     3.3V ──── 22Ω ──── IR LED Anode (+) ──── Collector (above)
+
+
+Mode-Cycle Button:
+
+    ESP32 GPIO 15 ────┤ Button ├──── GND
+    (uses internal pull-up, no external resistor needed)
 ```
 
 > **Tip**: Using an NPN transistor dramatically improves IR range. The transistor switches the LED with more current than the ESP32 GPIO can provide directly.
@@ -146,19 +155,35 @@ Two ways to switch to a different WiFi:
 
 ---
 
+## Hardware Mode-Cycle Button
+
+A physical push button on **GPIO 15** lets you cycle through modes without WiFi:
+
+- **21 modes**: 17 colours + FLASH / STROBE / FADE / SMOOTH
+- Each press sends the next mode's IR code and advances to the next one
+- After SMOOTH, it wraps back to Red
+- Debounced at 200ms (configurable via `DEBOUNCE_MS` in `config.h`)
+- Logged to Serial: `[BTN] Mode 5/21 → 0xF7906F`
+- Change the GPIO pin via `MODE_BUTTON_PIN` in `config.h`
+- Edit the `MODES[]` array in the `.ino` file to reorder or remove modes
+
+---
+
 ## Web Pages
 
 ### Page 1: Remote Control (`/`)
-- Looks exactly like the physical 24-key remote
-- Circular color buttons + rounded control buttons
-- Brightness ☀+/☀-, OFF/ON, R/G/B/W
-- 16 color buttons + FLASH/STROBE/FADE/SMOOTH
-- Tap any button to send its NEC IR code
+- Liquid glassmorphism design with frosted glass cards and animated orbs
+- SVG icons for brightness, power, and navigation
+- Circular gradient color buttons + rounded control buttons
+- Brightness up/down, OFF/ON, R/G/B/W
+- 16 colour buttons + FLASH/STROBE/FADE/SMOOTH
+- Ripple animation on tap
 
 ### Page 2: Custom Commands (`/custom`)
 - **Quick Send** — Enter any HEX code and send it
 - **Add Custom Button** — Name + HEX code → saved to flash
 - **Saved Buttons** — View, send, edit, or delete your custom buttons
+- **WiFi Settings** — Reset WiFi credentials and reboot into setup mode
 - Buttons persist across reboots
 
 Navigate between pages using the link in the top-right corner.
@@ -174,10 +199,10 @@ Go to `/custom` in your browser and add any new button with any HEX code.
 To change the 24 default remote buttons, edit `web_ui.h`:
 
 ```html
-<button class="btn circle c-red" onclick="S(this,'00FF20DF')">R</button>
+<button class="btn circle c-red" onclick="S(this,'00F720DF')">R</button>
 ```
 
-Change `00FF20DF` to your desired NEC code, then re-upload.
+Change `00F720DF` to your desired NEC code, then re-upload.
 
 ---
 
@@ -185,18 +210,18 @@ Change `00FF20DF` to your desired NEC code, then re-upload.
 
 | Button | HEX Code | Button | HEX Code |
 |--------|----------|--------|----------|
-| BRIGHT+ | `00FF00FF` | BRIGHT- | `00FF807F` |
-| OFF | `00FF40BF` | ON | `00FFC03F` |
-| RED | `00FF20DF` | GREEN | `00FFA05F` |
-| BLUE | `00FF609F` | WHITE | `00FFE01F` |
-| Orange | `00FF10EF` | Lt Green | `00FF906F` |
-| Dk Blue | `00FF50AF` | FLASH | `00FFD02F` |
-| Dk Orange | `00FF30CF` | Cyan | `00FFB04F` |
-| Purple | `00FF708F` | STROBE | `00FFF00F` |
-| Yellow | `00FF08F7` | Lt Blue | `00FF8877` |
-| Pink | `00FF48B7` | FADE | `00FFC837` |
-| Lt Yellow | `00FF28D7` | Sky Blue | `00FFA857` |
-| Lt Pink | `00FF6897` | SMOOTH | `00FFE817` |
+| BRIGHT+ | `00F700FF` | BRIGHT- | `00F7807F` |
+| OFF | `00F740BF` | ON | `00F7C03F` |
+| RED | `00F720DF` | GREEN | `00F7A05F` |
+| BLUE | `00F7609F` | WHITE | `00F7E01F` |
+| Orange | `00F710EF` | Lt Green | `00F7906F` |
+| Dk Blue | `00F750AF` | FLASH | `00F7D02F` |
+| Dk Orange | `00F730CF` | Cyan | `00F7B04F` |
+| Purple | `00F7708F` | STROBE | `00F7F00F` |
+| Yellow | `00F708F7` | Lt Blue | `00F78877` |
+| Pink | `00F748B7` | FADE | `00F7C837` |
+| Lt Yellow | `00F728D7` | Sky Blue | `00F7A857` |
+| Lt Pink | `00F76897` | SMOOTH | `00F7E817` |
 
 ---
 
