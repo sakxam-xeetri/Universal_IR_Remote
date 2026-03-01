@@ -228,6 +228,13 @@ If the default codes don't match your remote, capture them:
 
 ---
 
+## Author
+
+**Sakshyam Bastakoti**  
+🌐 [sakshyambastakoti.com.np](https://sakshyambastakoti.com.np)
+
+---
+
 ## License
 
 MIT License — free to use, modify, and distribute.
