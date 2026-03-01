@@ -65,7 +65,7 @@ Install via **Arduino IDE → Sketch → Include Library → Manage Libraries**:
 | **IRremote** | Armin Joachimsmeyer | **4.x** (v4.2.0 or later) |
 
 All other libraries are built into the ESP32 Arduino Core:
-- `WiFi.h`, `WebServer.h`, `ESPmDNS.h`, `Preferences.h`
+- `WiFi.h`, `WebServer.h`, `DNSServer.h`, `ESPmDNS.h`, `Preferences.h`
 
 ---
 
@@ -204,8 +204,9 @@ Change `00FF20DF` to your desired NEC code, then re-upload.
 
 ```
 Universal_IR_Remote/
-├── Universal_IR_Remote.ino   ← Main sketch (WiFi STA + loop)
-├── config.h                  ← WiFi credentials, GPIO pin, settings
+├── Universal_IR_Remote.ino   ← Main sketch (setup + loop)
+├── config.h                  ← GPIO pin, timeouts, settings
+├── wifi_manager.h / .cpp     ← WiFi Manager (portal + NVS credentials)
 ├── ir_sender.h / .cpp        ← IR transmitter (NEC 32-bit)
 ├── button_storage.h / .cpp   ← Custom button NVS persistence
 ├── web_ui.h                  ← Both HTML pages (remote + custom)
@@ -219,7 +220,7 @@ Universal_IR_Remote/
 
 | Problem | Solution |
 |---------|----------|
-| ESP32 won't connect to WiFi | Check SSID/password in `config.h`. Open Serial Monitor for errors. |
+| ESP32 won't connect to WiFi | WiFi Manager portal will start automatically. Re-enter credentials. Hold **BOOT** + press **RST** to force the setup portal. |
 | Can't find the IP address | Check Serial Monitor output after reset. |
 | `irremote.local` doesn't work | mDNS may not work on all devices. Use the IP address instead. |
 | IR not working | Check wiring. Verify IR LED lights up using phone camera. |
