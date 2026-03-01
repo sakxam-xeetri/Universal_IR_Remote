@@ -9,9 +9,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// ── WiFi Access Point Settings ──────────────────────────────
-#define WIFI_SSID       "RGB_Controller"
-#define WIFI_PASS       ""          // Leave empty for open network
+// ── WiFi Station Settings (connect to your home router) ─────
+#define WIFI_SSID       "YOUR_WIFI_NAME"    // ← Change to your WiFi name
+#define WIFI_PASS       "YOUR_WIFI_PASS"    // ← Change to your WiFi password
+
+// ── WiFi Connection Settings ────────────────────────────────
+#define WIFI_CONNECT_TIMEOUT  20    // Seconds to wait for connection
+#define WIFI_HOSTNAME   "irremote"  // mDNS hostname (http://irremote.local)
 
 // ── IR Transmitter Settings ─────────────────────────────────
 #define IR_SEND_PIN     4           // GPIO pin connected to IR LED
