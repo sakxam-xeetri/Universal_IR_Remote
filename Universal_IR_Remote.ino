@@ -4,8 +4,8 @@
  *   ESP32 Universal IR Remote Controller
  *   ────────────────────────────────────
  *   A WiFi-based IR blaster that replaces a 24-key RGB LED
- *   strip remote.  Connects as a soft-AP, serves a mobile-
- *   friendly web UI, and transmits NEC 32-bit IR codes.
+ *   strip remote.  Connects to your home WiFi so every device
+ *   on the network can control the RGB strip via a browser.
  *
  *   Hardware:
  *     • ESP32 Dev Module
@@ -13,12 +13,13 @@
  *
  *   Libraries required (install via Arduino Library Manager):
  *     • IRremote  by Armin Joachimsmeyer  (v4.x)
+ *     • ESPmDNS   (built-in)
  *
  *   Built-in ESP32 libraries used (no extra install needed):
  *     • WiFi.h
  *     • WebServer.h
- *     • DNSServer.h
  *     • Preferences.h
+ *     • ESPmDNS.h
  *
  *   Author:  Sakshyam Bastakoti
  *   Website: sakshyambastakoti.com.np
@@ -30,6 +31,7 @@
 #include "config.h"
 
 #include <WiFi.h>
+#include <ESPmDNS.h>
 
 #include "ir_sender.h"
 #include "button_storage.h"
@@ -40,7 +42,7 @@
 // ═══════════════════════════════════════════════════════════
 void setup() {
     Serial.begin(115200);
-    delay(300);   // Give the serial monitor time to attach
+    delay(300);
 
     Serial.println();
     Serial.println(F("╔══════════════════════════════════════════╗"));
@@ -55,42 +57,59 @@ void setup() {
     // ── 2. Initialise NVS button storage ────────────────────
     initStorage();
 
-    // ── 3. Start WiFi Access Point ──────────────────────────
-    WiFi.mode(WIFI_AP);
-    WiFi.setSleep(false);                 // Keep radio active
+    // ── 3. Connect to WiFi network ──────────────────────────
+    WiFi.mode(WIFI_STA);
+    WiFi.setSleep(false);
+    WiFi.setHostname(WIFI_HOSTNAME);
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-    bool apOk;
-    if (strlen(WIFI_PASS) >= 8) {
-        apOk = WiFi.softAP(WIFI_SSID, WIFI_PASS);
-    } else {
-        apOk = WiFi.softAP(WIFI_SSID);   // Open network
+    Serial.print(F("[WiFi] Connecting to "));
+    Serial.print(WIFI_SSID);
+
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+        attempts++;
+        if (attempts >= WIFI_CONNECT_TIMEOUT * 2) {
+            Serial.println();
+            Serial.println(F("[WiFi] ERROR – Could not connect!"));
+            Serial.println(F("[WiFi] Check SSID/password in config.h"));
+            Serial.println(F("[WiFi] Restarting in 5 seconds..."));
+            delay(5000);
+            ESP.restart();
+        }
     }
 
-    if (!apOk) {
-        Serial.println(F("[WiFi] ERROR – Failed to start AP!"));
-        Serial.println(F("[WiFi] Restarting in 3 seconds..."));
-        delay(3000);
-        ESP.restart();
-    }
-
-    delay(100);   // Small settle time for soft-AP
-
-    Serial.println(F("[WiFi] Access Point started"));
-    Serial.print(F("        SSID : "));  Serial.println(WIFI_SSID);
-    Serial.print(F("        IP   : "));  Serial.println(WiFi.softAPIP());
-    Serial.print(F("        Pass : "));
-    Serial.println(strlen(WIFI_PASS) >= 8 ? WIFI_PASS : "(open)");
+    Serial.println();
+    Serial.println(F("[WiFi] Connected!"));
+    Serial.print(F("        SSID : "));  Serial.println(WiFi.SSID());
+    Serial.print(F("        IP   : "));  Serial.println(WiFi.localIP());
+    Serial.print(F("        RSSI : "));  Serial.print(WiFi.RSSI());
+    Serial.println(F(" dBm"));
     Serial.println();
 
-    // ── 4. Start web server + captive portal ────────────────
+    // ── 4. Start mDNS (http://irremote.local) ──────────────
+    if (MDNS.begin(WIFI_HOSTNAME)) {
+        MDNS.addService("http", "tcp", 80);
+        Serial.print(F("[mDNS] http://"));
+        Serial.print(WIFI_HOSTNAME);
+        Serial.println(F(".local"));
+    } else {
+        Serial.println(F("[mDNS] Failed to start (use IP instead)"));
+    }
+
+    // ── 5. Start web server ─────────────────────────────────
     setupWebServer();
 
     Serial.println();
     Serial.println(F("════════════════════════════════════════════"));
-    Serial.println(F("  System ready!  Connect to WiFi and open"));
+    Serial.println(F("  System ready! Open in any browser:"));
     Serial.print(F("  http://"));
-    Serial.print(WiFi.softAPIP());
-    Serial.println(F("/"));
+    Serial.println(WiFi.localIP());
+    Serial.print(F("  http://"));
+    Serial.print(WIFI_HOSTNAME);
+    Serial.println(F(".local"));
     Serial.println(F("════════════════════════════════════════════"));
     Serial.println();
 }
@@ -100,4 +119,14 @@ void setup() {
 // ═══════════════════════════════════════════════════════════
 void loop() {
     handleWebServer();
+
+    // Auto-reconnect if WiFi drops
+    static unsigned long lastCheck = 0;
+    if (millis() - lastCheck > 10000) {
+        lastCheck = millis();
+        if (WiFi.status() != WL_CONNECTED) {
+            Serial.println(F("[WiFi] Connection lost – reconnecting..."));
+            WiFi.reconnect();
+        }
+    }
 }
