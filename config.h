@@ -17,6 +17,10 @@
 #define WIFI_HOSTNAME   "irremote"  // mDNS hostname (http://irremote.local)
 #define WIFI_RESET_PIN  0           // Hold BOOT button at startup to reset WiFi
 
+// ── Hardware Button ──────────────────────────────────────────
+#define MODE_BUTTON_PIN 15          // GPIO for mode-cycle push button (to GND)
+#define DEBOUNCE_MS     200         // Button debounce time in ms
+
 // ── IR Transmitter Settings ─────────────────────────────────
 #define IR_SEND_PIN     4           // GPIO pin connected to IR LED
 
