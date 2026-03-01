@@ -8,10 +8,12 @@ A professional WiFi-based IR blaster that fully replaces a **24-key RGB LED stri
 
 ## Features
 
-- **WiFi Station Mode** — Connects to your existing home WiFi; no separate network needed
+- **WiFi Manager Portal** — Configure WiFi from your phone, no code editing needed
+- **Auto-Connect** — Remembers your WiFi across reboots (saved in NVS flash)
 - **Multi-Device Access** — Any device on the same network can control the strip
 - **mDNS Support** — Access via `http://irremote.local` (no need to remember the IP)
 - **Auto-Reconnect** — Automatically reconnects if WiFi drops
+- **WiFi Reset** — Hold BOOT button at startup, or tap "Reset WiFi" in the web UI
 - **Remote Page** — Button layout matches the physical 24-key remote exactly
 - **Custom Commands Page** — Separate page for Quick Send and custom buttons
 - **Color-Coded Circular Buttons** — Looks like the real remote
@@ -86,19 +88,11 @@ Download from [arduino.cc](https://www.arduino.cc/en/software) (version 2.x reco
 2. Search for **IRremote**
 3. Install **"IRremote" by Armin Joachimsmeyer** version **4.x**
 
-### 4. Configure Your WiFi
-Open `config.h` and change these two lines to your WiFi credentials:
-
-```cpp
-#define WIFI_SSID       "YOUR_WIFI_NAME"    // ← Your WiFi network name
-#define WIFI_PASS       "YOUR_WIFI_PASS"    // ← Your WiFi password
-```
-
-### 5. Open the Project
+### 4. Open the Project
 1. Open **File → Open** and navigate to `Universal_IR_Remote.ino`
 2. Arduino IDE will open all project files in tabs
 
-### 6. Configure Board Settings
+### 5. Configure Board Settings
 
 | Setting | Value |
 |---------|-------|
@@ -111,30 +105,44 @@ Open `config.h` and change these two lines to your WiFi credentials:
 | Partition Scheme | Default 4MB with spiffs |
 | Port | (your ESP32 COM port) |
 
-### 7. Upload
+### 6. Upload
 1. Connect ESP32 via USB
 2. Hold **BOOT** button (if needed)
 3. Click **Upload** (→ arrow button)
 4. Release BOOT once upload starts
 5. Wait for "Done uploading"
 
+### 7. First-Time WiFi Setup
+1. After uploading, the ESP32 creates a WiFi network called **`RGB_IR_Setup`**
+2. Connect to it from your phone or laptop (open network, no password)
+3. A **WiFi Setup** page opens automatically (captive portal)
+4. If it doesn't auto-open, go to `http://192.168.4.1`
+5. **Select your home WiFi** from the scanned list
+6. **Enter the password** and tap **Connect**
+7. The ESP32 saves the credentials and reboots
+8. It now connects to your home WiFi automatically!
+
 ### 8. Find the IP Address
 1. Open **Tools → Serial Monitor** (baud: 115200)
 2. Press the ESP32 **RST** button
-3. You'll see output like:
+3. You'll see:
    ```
    [WiFi] Connected!
            IP   : 192.168.1.42
    [mDNS] http://irremote.local
    ```
-4. Note the IP address
 
 ### 9. Use It
 1. Make sure your phone/laptop is on the **same WiFi network**
 2. Open a browser and go to:
-   - `http://192.168.1.42` (use your actual IP from step 8)
-   - **or** `http://irremote.local` (mDNS — works on most devices)
+   - `http://192.168.1.42` (your actual IP)
+   - **or** `http://irremote.local` (mDNS)
 3. You'll see the remote control UI!
+
+### Changing WiFi Network Later
+Two ways to switch to a different WiFi:
+- **From the web UI**: Go to `/custom` → scroll down → tap **Reset WiFi & Reboot**
+- **Physically**: Hold the **BOOT** button while pressing **RST** — the setup portal will start
 
 ---
 
