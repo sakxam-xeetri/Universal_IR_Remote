@@ -52,6 +52,11 @@ Why am I emotionally losing to a ₹200 remote?
 So I went into full engineering mode. I took an IR sensor, removed its LED, grabbed my ESP32, connected a button, and opened the serial monitor like it was a battlefield control panel.
 
 <p align="center">
+  <img src="assests/ir%20sensor.jpeg" alt="IR sensor used to decode the remote" width="500"><br>
+  <em>The IR sensor — my weapon of choice to decode every signal.</em>
+</p>
+
+<p align="center">
   <img src="assests/IMG_2062.JPG.jpeg" alt="ESP32 hardware setup" width="500"><br>
   <em>The setup — ESP32, IR LED, wires, and determination.</em>
 </p>
@@ -106,7 +111,9 @@ Now when people see my RGB lights glowing smoothly, they think I just bought a c
 ## Web Dashboard
 
 <p align="center">
-  <img src="assests/IMG_2067.JPG.jpeg" alt="Web Dashboard - Glassmorphism UI" width="300"><br>
+  <img src="assests/IMG_2067.JPG.jpeg" alt="Web Dashboard - Glassmorphism UI" width="300">
+  &nbsp;&nbsp;&nbsp;
+  <img src="assests/web%20bashbaord.jpeg" alt="Web Dashboard - Custom Commands" width="300"><br>
   <em>Liquid glass UI — control your RGB strip from any browser.</em>
 </p>
 
@@ -135,6 +142,11 @@ Now when people see my RGB lights glowing smoothly, they think I just bought a c
 ---
 
 ## Hardware Required
+
+<p align="center">
+  <img src="assests/device.jpeg" alt="The finished ESP32 IR controller device" width="500"><br>
+  <em>The finished device — compact, wireless, and smarter than the original remote.</em>
+</p>
 
 | Component | Details |
 |-----------|---------|
@@ -344,6 +356,9 @@ Universal_IR_Remote/
 ├── web_handler.h / .cpp      ← Web server + API routes
 ├── assests/                  ← Project images
 │   ├── remote.jpg            ← Original 24-key RGB remote
+│   ├── ir sensor.jpeg        ← IR sensor used for decoding
+│   ├── device.jpeg           ← Finished device photo
+│   ├── web bashbaord.jpeg    ← Web dashboard screenshot
 │   ├── IMG_2061.JPG.jpeg     ← Final setup with RGB strip
 │   ├── IMG_2062.JPG.jpeg     ← Hardware close-up
 │   ├── IMG_2063.JPG.jpeg     ← Build process
