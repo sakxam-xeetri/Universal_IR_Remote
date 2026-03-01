@@ -20,7 +20,8 @@
  *     • DNSServer.h
  *     • Preferences.h
  *
- *   Author:  Universal IR Remote Project
+ *   Author:  Sakshyam Bastakoti
+ *   Website: sakshyambastakoti.com.np
  *   License: MIT
  *
  * =============================================================
