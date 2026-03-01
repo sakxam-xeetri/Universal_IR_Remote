@@ -26,27 +26,24 @@ void initIR() {
  * @param code  The NEC code in standard notation:
  *              0xAABBCCDD  where AA=Address, BB=~Address,
  *              CC=Command, DD=~Command
- *              Example: 0x00FF20DF  (Red button)
+ *              Example: 0x00F720DF  (Red button)
  * @return true on success
  */
 bool sendIRCode(uint32_t code) {
-    uint8_t addr    = (code >> 24) & 0xFF;
-    uint8_t addrInv = (code >> 16) & 0xFF;
-    uint8_t cmd     = (code >>  8) & 0xFF;
-    uint8_t cmdInv  =  code        & 0xFF;
+    uint8_t addr    = (code >> 24) & 0xFF;   // Address byte
+    uint8_t addrInv = (code >> 16) & 0xFF;   // ~Address (or non-standard)
+    uint8_t cmd     = (code >>  8) & 0xFF;   // Command byte
+    uint8_t cmdInv  =  code        & 0xFF;   // ~Command (or non-standard)
 
     Serial.printf("[IR] Sending 0x%08X  Addr:0x%02X  Cmd:0x%02X\n",
                   code, addr, cmd);
 
-    // Standard NEC: complements match → use clean sendNEC()
-    if (addrInv == (uint8_t)(~addr) && cmdInv == (uint8_t)(~cmd)) {
-        IrSender.sendNEC(addr, cmd, 2);
-    } else {
-        // Non-standard frame → byte-swap to raw LSB-first format
-        uint32_t raw = __builtin_bswap32(code);
-        IrSender.sendNECRaw(raw, 2);
-        Serial.println(F("[IR] (sent as raw non-standard NEC)"));
-    }
+    // Use 16-bit address & command so IRremote sends all 4 bytes
+    // exactly as specified — works for both standard and non-standard
+    // NEC complements (e.g. address 0x00/0xF7 on many RGB remotes).
+    uint16_t address = ((uint16_t)addrInv << 8) | addr;
+    uint16_t command = ((uint16_t)cmdInv  << 8) | cmd;
+    IrSender.sendNEC(address, command, 2);
 
     return true;
 }
