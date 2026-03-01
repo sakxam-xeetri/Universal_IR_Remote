@@ -22,7 +22,6 @@
 
 // ── Web Server Settings ─────────────────────────────────────
 #define WEB_SERVER_PORT 80
-#define DNS_PORT        53
 
 // ── Storage Settings ────────────────────────────────────────
 #define MAX_CUSTOM_BUTTONS  50      // Maximum number of custom buttons
