@@ -1,8 +1,114 @@
-# ESP32 Universal IR Remote Controller
+<p align="center">
+  <img src="assests/IMG_2061.JPG.jpeg" alt="ESP32 RGB IR Remote - Final Setup" width="600">
+</p>
 
-A professional WiFi-based IR blaster that fully replaces a **24-key RGB LED strip remote**. The ESP32 connects to your home WiFi network, and **any device on the same network** (phone, tablet, laptop) can control the RGB strip through a browser.
+<h1 align="center">ESP32 Universal IR Remote Controller</h1>
 
-**Author:** [Sakshyam Bastakoti](https://sakshyambastakoti.com.np)
+<p align="center">
+  <strong>A WiFi-based IR blaster that replaces a 24-key RGB LED strip remote</strong><br>
+  Built with an ESP32, an IR LED, and a story of engineering revenge.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-ESP32-blue?style=flat-square&logo=espressif" alt="ESP32">
+  <img src="https://img.shields.io/badge/Protocol-NEC%20IR-orange?style=flat-square" alt="NEC IR">
+  <img src="https://img.shields.io/badge/UI-Glassmorphism-blueviolet?style=flat-square" alt="Glassmorphism">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
+</p>
+
+<p align="center">
+  <b>Author:</b> <a href="https://sakshyambastakoti.com.np">Sakshyam Bastakoti</a>
+</p>
+
+---
+
+## The Story Behind This Project
+
+To make my room look cooler, I did what every broke college tech guy does — I bought the cheapest RGB strip available. Obviously the *"premium ultra-mega-super"* Chinese edition, because college doesn't pay me and my wallet believes in minimalism.
+
+I came back to my room excited. Plugged it in. **Boom.** The strip turned on. Instant happiness.
+
+Then I grabbed the remote. Pressed ON.
+
+Nothing.
+
+Pressed harder. Still nothing. Changed battery. **Nothing.**
+
+<p align="center">
+  <img src="assests/remote.jpg" alt="The 24-key RGB remote that gave up on life" width="280"><br>
+  <em>The remote that started it all — retired, replaced, and outclassed.</em>
+</p>
+
+At that moment, I realized something very important:
+
+> The LED strip was alive. The remote... was spiritually gone.
+
+For a few seconds I just stared at the ceiling like a defeated engineer. Then it hit me.
+
+*"Wait... I literally build robots."*
+
+Why am I emotionally losing to a ₹200 remote?
+
+So I went into full engineering mode. I took an IR sensor, removed its LED, grabbed my ESP32, connected a button, and opened the serial monitor like it was a battlefield control panel.
+
+<p align="center">
+  <img src="assests/IMG_2062.JPG.jpeg" alt="ESP32 hardware setup" width="500"><br>
+  <em>The setup — ESP32, IR LED, wires, and determination.</em>
+</p>
+
+- **Step one:** Understand the IR codes.
+- **Step two:** Replicate them.
+- **Step three:** *Become* the remote.
+
+Hex codes started flying on the screen like:
+
+```
+0xF720DF
+0xF7A05F
+```
+
+It looked less like color control and more like I was launching a satellite from my desk.
+
+<p align="center">
+  <img src="assests/IMG_2063.JPG.jpeg" alt="Building the IR controller" width="500"><br>
+  <em>Engineering mode: activated.</em>
+</p>
+
+After some wiring, some coding, and one dramatic *"please work"* moment... I pressed my homemade button.
+
+**The strip turned on.**
+
+I froze.
+
+Pressed it again. **It changed color.**
+
+<p align="center">
+  <img src="assests/IMG_2064.JPG.jpeg" alt="The hardware in action" width="500"><br>
+  <em>It's alive — and it listens to me now.</em>
+</p>
+
+That's when I realized something powerful:
+
+> The remote didn't fail. It *resigned*.
+
+In less than an hour, I built my own custom IR controller using an ESP32 and a button. A broken cheap product turned into a personal robotics flex.
+
+And yes, thank you Claude Opus... but let's be honest... **it worked because I worked.**
+
+Now when people see my RGB lights glowing smoothly, they think I just bought a cool setup. They don't know the original remote is sitting in a drawer... retired... replaced by something smarter.
+
+**Moral of the story:**
+
+> *If you do robotics, even a faulty remote should be scared of you.*
+
+---
+
+## Web Dashboard
+
+<p align="center">
+  <img src="assests/IMG_2067.JPG.jpeg" alt="Web Dashboard - Glassmorphism UI" width="300"><br>
+  <em>Liquid glass UI — control your RGB strip from any browser.</em>
+</p>
 
 ---
 
@@ -236,6 +342,13 @@ Universal_IR_Remote/
 ├── button_storage.h / .cpp   ← Custom button NVS persistence
 ├── web_ui.h                  ← Both HTML pages (remote + custom)
 ├── web_handler.h / .cpp      ← Web server + API routes
+├── assests/                  ← Project images
+│   ├── remote.jpg            ← Original 24-key RGB remote
+│   ├── IMG_2061.JPG.jpeg     ← Final setup with RGB strip
+│   ├── IMG_2062.JPG.jpeg     ← Hardware close-up
+│   ├── IMG_2063.JPG.jpeg     ← Build process
+│   ├── IMG_2064.JPG.jpeg     ← Device in action
+│   └── IMG_2067.JPG.jpeg     ← Web dashboard screenshot
 └── README.md                 ← This file
 ```
 
@@ -268,64 +381,12 @@ If the default codes don't match your specific remote:
 
 ---
 
-## The Story Behind This Project
+## The Final Result
 
-To make my room look cooler, I did what every broke college tech guy does — I bought the cheapest RGB strip available. Obviously the *"premium ultra-mega-super"* Chinese edition, because college doesn't pay me and my wallet believes in minimalism.
-
-I came back to my room excited. Plugged it in. **Boom.** The strip turned on. Instant happiness.
-
-Then I grabbed the remote. Pressed ON.
-
-Nothing.
-
-Pressed harder. Still nothing. Changed battery. **Nothing.**
-
-At that moment, I realized something very important:
-
-> The LED strip was alive. The remote... was spiritually gone.
-
-For a few seconds I just stared at the ceiling like a defeated engineer. Then it hit me.
-
-*"Wait... I literally build robots."*
-
-Why am I emotionally losing to a ₹200 remote?
-
-So I went into full engineering mode. I took an IR sensor, removed its LED, grabbed my ESP32, connected a button, and opened the serial monitor like it was a battlefield control panel.
-
-- **Step one:** Understand the IR codes.
-- **Step two:** Replicate them.
-- **Step three:** *Become* the remote.
-
-Hex codes started flying on the screen like:
-
-```
-0xF720DF
-0xF7A05F
-```
-
-It looked less like color control and more like I was launching a satellite from my desk.
-
-After some wiring, some coding, and one dramatic *"please work"* moment... I pressed my homemade button.
-
-**The strip turned on.**
-
-I froze.
-
-Pressed it again. **It changed color.**
-
-That's when I realized something powerful:
-
-> The remote didn't fail. It *resigned*.
-
-In less than an hour, I built my own custom IR controller using an ESP32 and a button. A broken cheap product turned into a personal robotics flex.
-
-And yes, thank you Claude Opus... but let's be honest... **it worked because I worked.**
-
-Now when people see my RGB lights glowing smoothly, they think I just bought a cool setup. They don't know the original remote is sitting in a drawer... retired... replaced by something smarter.
-
-**Moral of the story:**
-
-> *If you do robotics, even a faulty remote should be scared of you.*
+<p align="center">
+  <img src="assests/IMG_2061.JPG.jpeg" alt="RGB strip controlled by ESP32" width="600"><br>
+  <em>From a dead remote to a fully custom WiFi-controlled RGB setup.</em>
+</p>
 
 ---
 
