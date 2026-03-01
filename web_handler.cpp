@@ -2,17 +2,17 @@
  * =============================================================
  *  Web Handler Module - Implementation
  * =============================================================
- *  Hosts the web server and DNS captive-portal on the ESP32
- *  soft-AP.  All API endpoints are defined here.
+ *  Hosts the web server on the local WiFi network.
+ *  Any device on the same network can access the controller.
  *
  *  Routes:
- *    GET  /                  → Serve UI
+ *    GET  /                  → Remote UI page
+ *    GET  /custom            → Custom commands page
  *    GET  /api/send?code=HEX → Send IR code
  *    GET  /api/custom        → List custom buttons (JSON)
  *    GET  /api/custom/add    → Add button   (?name=…&code=…)
  *    GET  /api/custom/edit   → Edit button  (?id=…&name=…&code=…)
  *    GET  /api/custom/delete → Delete button (?id=…)
- *    *    (everything else)  → Captive-portal redirect
  * =============================================================
  */
 
@@ -24,14 +24,17 @@
 
 #include <WiFi.h>
 #include <WebServer.h>
-#include <DNSServer.h>
 
-static WebServer  server(WEB_SERVER_PORT);
-static DNSServer  dnsServer;
+static WebServer server(WEB_SERVER_PORT);
 
-// ── Serve the main UI page ──────────────────────────────────
+// ── Serve the remote UI page ────────────────────────────────
 static void handleRoot() {
     server.send_P(200, "text/html", INDEX_HTML);
+}
+
+// ── Serve the custom commands page ──────────────────────────
+static void handleCustomPage() {
+    server.send_P(200, "text/html", CUSTOM_HTML);
 }
 
 // ── API: Send IR code ───────────────────────────────────────
@@ -125,11 +128,9 @@ static void handleCustomDelete() {
                    : "{\"ok\":false,\"msg\":\"Invalid button id\"}");
 }
 
-// ── Captive-portal redirect ─────────────────────────────────
-static void handleCaptiveRedirect() {
-    String url = "http://" + WiFi.softAPIP().toString() + "/";
-    server.sendHeader("Location", url, true);
-    server.send(302, "text/plain", "");
+// ── 404 handler ─────────────────────────────────────────────
+static void handleNotFound() {
+    server.send(404, "text/plain", "404 - Not Found");
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -137,12 +138,9 @@ static void handleCaptiveRedirect() {
 // ═══════════════════════════════════════════════════════════
 
 void setupWebServer() {
-    // Start DNS server — redirects ALL domains to the AP IP
-    // so that captive-portal detection opens our page.
-    dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
-
-    // ── Main page ───────────────────────────────────────────
+    // ── Pages ───────────────────────────────────────────────
     server.on("/",                HTTP_GET, handleRoot);
+    server.on("/custom",          HTTP_GET, handleCustomPage);
 
     // ── IR API ──────────────────────────────────────────────
     server.on("/api/send",        HTTP_GET, handleSendIR);
@@ -153,28 +151,16 @@ void setupWebServer() {
     server.on("/api/custom/edit",     HTTP_GET, handleCustomEdit);
     server.on("/api/custom/delete",   HTTP_GET, handleCustomDelete);
 
-    // ── Captive-portal detection URLs ───────────────────────
-    server.on("/generate_204",        HTTP_GET, handleCaptiveRedirect);   // Android
-    server.on("/gen_204",             HTTP_GET, handleCaptiveRedirect);   // Android alt
-    server.on("/hotspot-detect.html", HTTP_GET, handleCaptiveRedirect);   // Apple / iOS
-    server.on("/library/test/success.html", HTTP_GET, handleCaptiveRedirect); // Apple alt
-    server.on("/connecttest.txt",     HTTP_GET, handleCaptiveRedirect);   // Windows
-    server.on("/redirect",            HTTP_GET, handleCaptiveRedirect);   // Windows alt
-    server.on("/fwlink",              HTTP_GET, handleCaptiveRedirect);   // Microsoft
-    server.on("/canonical.html",      HTTP_GET, handleCaptiveRedirect);   // Firefox
-    server.on("/success.txt",         HTTP_GET, handleCaptiveRedirect);   // Firefox alt
-
-    // ── Catch-all → redirect to main page ───────────────────
-    server.onNotFound(handleCaptiveRedirect);
+    // ── 404 ─────────────────────────────────────────────────
+    server.onNotFound(handleNotFound);
 
     server.begin();
     Serial.println(F("[Web] Server started on port 80"));
     Serial.print(F("[Web] Open  http://"));
-    Serial.print(WiFi.softAPIP());
+    Serial.print(WiFi.localIP());
     Serial.println(F("/  in your browser"));
 }
 
 void handleWebServer() {
-    dnsServer.processNextRequest();
     server.handleClient();
 }
