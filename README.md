@@ -56,11 +56,6 @@ So I went into full engineering mode. I took an IR sensor, removed its LED, grab
   <em>The IR sensor — my weapon of choice to decode every signal.</em>
 </p>
 
-<p align="center">
-  <img src="assests/IMG_2062.JPG.jpeg" alt="ESP32 hardware setup" width="500"><br>
-  <em>The setup — ESP32, IR LED, wires, and determination.</em>
-</p>
-
 - **Step one:** Understand the IR codes.
 - **Step two:** Replicate them.
 - **Step three:** *Become* the remote.
@@ -74,11 +69,6 @@ Hex codes started flying on the screen like:
 
 It looked less like color control and more like I was launching a satellite from my desk.
 
-<p align="center">
-  <img src="assests/IMG_2063.JPG.jpeg" alt="Building the IR controller" width="500"><br>
-  <em>Engineering mode: activated.</em>
-</p>
-
 After some wiring, some coding, and one dramatic *"please work"* moment... I pressed my homemade button.
 
 **The strip turned on.**
@@ -86,11 +76,6 @@ After some wiring, some coding, and one dramatic *"please work"* moment... I pre
 I froze.
 
 Pressed it again. **It changed color.**
-
-<p align="center">
-  <img src="assests/IMG_2064.JPG.jpeg" alt="The hardware in action" width="500"><br>
-  <em>It's alive — and it listens to me now.</em>
-</p>
 
 That's when I realized something powerful:
 
@@ -359,11 +344,7 @@ Universal_IR_Remote/
 │   ├── ir sensor.jpeg        ← IR sensor used for decoding
 │   ├── device.jpeg           ← Finished device photo
 │   ├── web bashbaord.jpeg    ← Web dashboard screenshot
-│   ├── IMG_2061.JPG.jpeg     ← Final setup with RGB strip
-│   ├── IMG_2062.JPG.jpeg     ← Hardware close-up
-│   ├── IMG_2063.JPG.jpeg     ← Build process
-│   ├── IMG_2064.JPG.jpeg     ← Device in action
-│   └── IMG_2067.JPG.jpeg     ← Web dashboard screenshot
+│   └── IMG_2061.JPG.jpeg     ← Final setup with RGB strip
 └── README.md                 ← This file
 ```
 
@@ -393,15 +374,6 @@ If the default codes don't match your specific remote:
 3. Press each button on your physical remote
 4. Note the HEX codes from Serial Monitor
 5. Update via the Custom Commands page or edit `web_ui.h`
-
----
-
-## The Final Result
-
-<p align="center">
-  <img src="assests/IMG_2061.JPG.jpeg" alt="RGB strip controlled by ESP32" width="600"><br>
-  <em>From a dead remote to a fully custom WiFi-controlled RGB setup.</em>
-</p>
 
 ---
 
