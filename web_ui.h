@@ -479,6 +479,13 @@ body{
     </div>
   </div>
 
+  <!-- WIFI SETTINGS -->
+  <div class="card" style="border-color:rgba(255,100,100,.15)">
+    <h2 style="color:#ff6b6b">&#128274; WiFi Settings</h2>
+    <p style="font-size:.75rem;color:#666;margin-bottom:12px">Erase saved WiFi credentials and reboot into setup mode to connect to a different network.</p>
+    <button class="abtn" style="background:linear-gradient(180deg,#ff6b6b,#cc4444);width:100%;padding:12px" onclick="RW()">Reset WiFi &amp; Reboot</button>
+  </div>
+
 </div>
 
 <div class="info">ESP32 Universal IR Remote &bull; <a href="https://sakshyambastakoti.com.np" target="_blank">Sakshyam Bastakoti</a></div>
@@ -585,6 +592,19 @@ function DB(id){
 /* ── Helpers ─────────────────────────────────── */
 function E(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;}
 function EA(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+
+/* ── Reset WiFi ──────────────────────────────── */
+function RW(){
+  if(!confirm('Reset WiFi credentials?\n\nThe ESP32 will reboot into setup mode.\nYou will need to connect to "RGB_IR_Setup" WiFi to reconfigure.'))return;
+  st.style.color='#48dbfb';st.textContent='Resetting WiFi...';
+  fetch('/api/wifi/reset')
+    .then(function(r){return r.json()})
+    .then(function(d){
+      st.style.color='#feca57';
+      st.textContent='\u2714 WiFi erased \u2014 rebooting into setup mode...';
+    })
+    .catch(function(){st.style.color='#feca57';st.textContent='Rebooting...';});
+}
 
 LC();
 </script>
