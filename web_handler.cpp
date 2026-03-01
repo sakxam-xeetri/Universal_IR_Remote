@@ -21,6 +21,7 @@
 #include "web_ui.h"
 #include "ir_sender.h"
 #include "button_storage.h"
+#include "wifi_manager.h"
 
 #include <WiFi.h>
 #include <WebServer.h>
@@ -133,6 +134,16 @@ static void handleNotFound() {
     server.send(404, "text/plain", "404 - Not Found");
 }
 
+// ── API: Reset WiFi credentials + reboot ──────────────────
+static void handleWiFiReset() {
+    server.send(200, "application/json",
+                "{\"ok\":true,\"msg\":\"WiFi credentials erased. Rebooting into setup mode...\"}");
+    delay(500);
+    wifiManagerReset();
+    delay(500);
+    ESP.restart();
+}
+
 // ═══════════════════════════════════════════════════════════
 //  Public interface
 // ═══════════════════════════════════════════════════════════
@@ -150,7 +161,8 @@ void setupWebServer() {
     server.on("/api/custom/add",      HTTP_GET, handleCustomAdd);
     server.on("/api/custom/edit",     HTTP_GET, handleCustomEdit);
     server.on("/api/custom/delete",   HTTP_GET, handleCustomDelete);
-
+    // ── WiFi management ───────────────────────────────────
+    server.on("/api/wifi/reset",      HTTP_GET, handleWiFiReset);
     // ── 404 ─────────────────────────────────────────────────
     server.onNotFound(handleNotFound);
 
